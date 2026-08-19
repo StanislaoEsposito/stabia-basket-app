@@ -1,69 +1,148 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { ChevronRight, Trophy } from "lucide-react";
+
+/* ── Lista squadre ── */
+const TEAMS = [
+  { name: "DIV. REG. 1",           category: "Seniores" },
+  { name: "U19 GOLD",              category: "Under 19" },
+  { name: "U17 GOLD",              category: "Under 17" },
+  { name: "U19 LIBERTAS/U17 SILVER", category: "Under 17–19" },
+  { name: "U14 SILVER",            category: "Under 14" },
+  { name: "U13 SILVER",            category: "Under 13" },
+  { name: "ESORDIENTI",            category: "Minibasket" },
+  { name: "AQUILOTTI 2016",        category: "BTS" },
+  { name: "AQUILOTTI 2017",        category: "BTS" },
+  { name: "PULCINI B. CECCHI",     category: "B. Cecchi" },
+  { name: "SCOIATTOLI B. CECCHI",  category: "B. Cecchi" },
+  { name: "AQUILOTTI B. CECCHI",   category: "B. Cecchi" },
+  { name: "PULCINI CICERONE",      category: "Cicerone" },
+  { name: "SCOIATTOLI CICERONE",   category: "Cicerone" },
+  { name: "AQUILOTTI CICERONE",    category: "Cicerone" },
+  { name: "PULCINI DI CAPUA",      category: "Di Capua" },
+  { name: "SCOIATTOLI DI CAPUA",   category: "Di Capua" },
+];
+
+/* Colori per categoria (pill badge) */
+const CATEGORY_COLORS: Record<string, string> = {
+  "Seniores":   "bg-[#0A1F44] text-white",
+  "Under 19":   "bg-blue-700 text-white",
+  "Under 17":   "bg-blue-600 text-white",
+  "Under 17–19":"bg-blue-500 text-white",
+  "Under 14":   "bg-indigo-500 text-white",
+  "Under 13":   "bg-violet-500 text-white",
+  "Minibasket": "bg-emerald-600 text-white",
+  "BTS":        "bg-[#F5B800] text-[#0A1F44]",
+  "B. Cecchi":  "bg-orange-500 text-white",
+  "Cicerone":   "bg-teal-600 text-white",
+  "Di Capua":   "bg-rose-500 text-white",
+};
+
+export default function HomePage() {
+  const router = useRouter();
+
+  const handleTeamSelect = (teamName: string) => {
+    router.push(`/dashboard?team=${encodeURIComponent(teamName)}`);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-[#F4F6F9] flex flex-col">
+
+      {/* ── Hero Header ── */}
+      <div className="bg-[#0A1F44] text-white pb-10 pt-10 px-4 text-center relative overflow-hidden">
+        {/* Cerchi decorativi di sfondo */}
+        <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#F5B800]/10" />
+        <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-[#F5B800]/8" />
+        <div className="absolute top-4 right-8 w-20 h-20 rounded-full bg-white/5" />
+
+        {/* Logo ufficiale */}
+        <div className="relative flex justify-center mb-4">
+          <Image
+            src="/logo.png"
+            alt="Stabia Basket BTS & NPS"
+            width={140}
+            height={140}
+            className="w-[130px] h-auto object-contain drop-shadow-2xl"
+            priority
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Titolo */}
+        <h1 className="relative text-2xl font-extrabold tracking-tight mb-1">
+          Stabia Basket
+        </h1>
+        <p className="relative text-[#F5B800] text-sm font-semibold tracking-widest uppercase">
+          BTS &amp; NPS
+        </p>
+        <p className="relative mt-3 text-white/60 text-sm">
+          Seleziona la tua squadra per continuare
+        </p>
+      </div>
+
+      {/* ── Lista Squadre ── */}
+      <div className="flex-1 max-w-lg w-full mx-auto px-4 mt-6 pb-10">
+
+        {/* Card contenitore */}
+        <div className="bg-white rounded-2xl shadow-lg border border-[#E2E8F0] overflow-hidden">
+          {/* Intestazione lista */}
+          <div className="px-5 py-5 border-b border-[#E2E8F0] flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg bg-[#F5B800]/15 flex items-center justify-center flex-shrink-0">
+              <Trophy className="w-4 h-4 text-[#F5B800]" />
+            </div>
+            <span className="text-sm font-bold text-[#0A1F44] tracking-wide">
+              {TEAMS.length} Squadre disponibili
+            </span>
+          </div>
+
+          {/* Righe squadre */}
+          <ul className="divide-y divide-[#F4F6F9]">
+            {TEAMS.map((team, index) => (
+              <li key={team.name}>
+                <button
+                  onClick={() => handleTeamSelect(team.name)}
+                  className="w-full flex items-center gap-4 px-5 py-4 text-left
+                             hover:bg-[#F4F6F9] active:bg-[#E2E8F0]
+                             transition-colors duration-150 group
+                             focus:outline-none focus-visible:bg-[#F4F6F9]"
+                  aria-label={`Seleziona squadra ${team.name}`}
+                >
+                  {/* Numero */}
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#F4F6F9] group-hover:bg-[#E2E8F0]
+                                   text-[#94A3B8] text-xs font-bold flex items-center justify-center
+                                   transition-colors duration-150">
+                    {index + 1}
+                  </span>
+
+                  {/* Nome squadra */}
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-[#0A1F44] text-sm block truncate
+                                     group-hover:text-[#122558] transition-colors">
+                      {team.name}
+                    </span>
+                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold
+                                      ${CATEGORY_COLORS[team.category]}`}>
+                      {team.category}
+                    </span>
+                  </div>
+
+                  {/* Arrow */}
+                  <ChevronRight
+                    className="flex-shrink-0 w-4 h-4 text-[#CBD5E1] group-hover:text-[#F5B800]
+                                 group-hover:translate-x-0.5 transition-all duration-150"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
-      </main>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-[#94A3B8] mt-6">
+          © 2024 Stabia Basket BTS &amp; NPS · Tutti i diritti riservati
+        </p>
+      </div>
     </div>
   );
 }
