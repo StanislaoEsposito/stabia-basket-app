@@ -30,14 +30,22 @@ export default function AppHeader({
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
         {/* Logo + Testi */}
         <div className="flex items-center gap-3 min-w-0">
-          {/* Logo ufficiale — rimpiazza l'icona scudo provvisoria */}
-          <div className="flex-shrink-0 h-10 flex items-center">
+          {/* Doppio logo nell'header — Maschile + Femminile */}
+          <div className="flex-shrink-0 flex items-center gap-1.5 h-10">
             <Image
               src="/logo.png"
-              alt="Stabia Basket BTS & NPS"
+              alt="Stabia Basket BTS – Maschile"
               width={40}
               height={40}
-              className="h-10 w-auto object-contain"
+              className="h-9 w-auto object-contain"
+              priority
+            />
+            <Image
+              src="/logo-femminile.png"
+              alt="Stabia Basket NPS – Femminile"
+              width={40}
+              height={40}
+              className="h-9 w-auto object-contain"
               priority
             />
           </div>

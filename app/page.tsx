@@ -57,14 +57,22 @@ export default function HomePage() {
         <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-[#F5B800]/8" />
         <div className="absolute top-4 right-8 w-20 h-20 rounded-full bg-white/5" />
 
-        {/* Logo ufficiale */}
-        <div className="relative flex justify-center mb-4">
+        {/* Doppio logo: Maschile + Femminile */}
+        <div className="relative flex items-center justify-center gap-4 sm:gap-6 mb-4">
           <Image
             src="/logo.png"
-            alt="Stabia Basket BTS & NPS"
+            alt="Stabia Basket BTS – Maschile"
             width={140}
             height={140}
-            className="w-[130px] h-auto object-contain drop-shadow-2xl"
+            className="w-28 sm:w-32 h-auto object-contain drop-shadow-2xl max-w-[38vw]"
+            priority
+          />
+          <Image
+            src="/logo-femminile.png"
+            alt="Stabia Basket NPS – Femminile"
+            width={140}
+            height={140}
+            className="w-28 sm:w-32 h-auto object-contain drop-shadow-2xl max-w-[38vw]"
             priority
           />
         </div>
