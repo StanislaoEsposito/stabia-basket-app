@@ -63,11 +63,11 @@ function PlayerCard({ player, index, onDelete }: {
           {player.dob ? `Nato il ${formatDob(player.dob)}` : "Data di nascita non inserita"}
         </p>
       </div>
-      {/* Elimina */}
+      {/* Elimina — sempre visibile su mobile */}
       <button
         onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
-        className="flex-shrink-0 w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center transition-colors
-                   text-[#CBD5E1] hover:text-red-500 opacity-0 group-hover:opacity-100 focus:opacity-100"
+        className="flex-shrink-0 w-9 h-9 rounded-xl hover:bg-red-50 flex items-center justify-center
+                   transition-colors text-red-400 hover:text-red-600 active:scale-95"
         aria-label="Elimina giocatore"
       >
         <Trash2 className="w-4 h-4" />

@@ -81,9 +81,6 @@ export default function HomePage() {
         <h1 className="relative text-2xl font-extrabold tracking-tight mb-1">
           Stabia Basket
         </h1>
-        <p className="relative text-[#F5B800] text-sm font-semibold tracking-widest uppercase">
-          BTS &amp; NPS
-        </p>
         <p className="relative mt-3 text-white/60 text-sm">
           Seleziona la tua squadra per continuare
         </p>

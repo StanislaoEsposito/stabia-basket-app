@@ -51,7 +51,7 @@ export default function AppHeader({
           </div>
           <div className="min-w-0">
             <p className="text-xs font-medium text-[#F5B800] uppercase tracking-widest leading-none">
-              {title}
+              Stabia Basket
             </p>
             {subtitle && (
               <h1 className="text-base font-bold truncate leading-tight mt-0.5">
