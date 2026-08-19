@@ -7,12 +7,22 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+/** Costruisce l'URL base in modo sicuro, a prova di variabili d'ambiente malformate. */
+function getBaseUrl(): string {
+  let url = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stabia-basket.vercel.app";
+  // Rimuove spazi accidentali da copia-incolla nel pannello Vercel
+  url = url.trim();
+  // Aggiunge il protocollo se l'utente ha incollato solo il dominio
+  if (!url.startsWith("http")) {
+    url = `https://${url}`;
+  }
+  return url;
+}
+
 export const metadata: Metadata = {
   title: "Stabia Basket BTS & NPS – Gestionale",
   description: "Gestionale ufficiale della società sportiva Stabia Basket BTS & NPS",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://stabia-basket.vercel.app"
-  ),
+  metadataBase: new URL(getBaseUrl()),
 
   /* ── Open Graph (WhatsApp, Telegram, Facebook, LinkedIn…) ── */
   openGraph: {
