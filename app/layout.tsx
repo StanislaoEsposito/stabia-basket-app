@@ -7,22 +7,30 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-/** Costruisce l'URL base in modo sicuro, a prova di variabili d'ambiente malformate. */
-function getBaseUrl(): string {
-  let url = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stabia-basket.vercel.app";
-  // Rimuove spazi accidentali da copia-incolla nel pannello Vercel
-  url = url.trim();
-  // Aggiunge il protocollo se l'utente ha incollato solo il dominio
-  if (!url.startsWith("http")) {
-    url = `https://${url}`;
+/**
+ * Restituisce sempre un URL valido per metadataBase.
+ * Il try-catch garantisce che qualsiasi valore malformato in NEXT_PUBLIC_SITE_URL
+ * (spazi, brackets, protocollo mancante, caratteri invalidi…) non mandi in crash
+ * il build di Vercel con "TypeError: Invalid URL".
+ */
+function getMetadataBase(): URL {
+  try {
+    const raw = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+    if (!raw.trim()) throw new Error("empty");
+    const cleaned = raw.trim().startsWith("http")
+      ? raw.trim()
+      : `https://${raw.trim()}`;
+    return new URL(cleaned);
+  } catch {
+    // Fallback sicuro: se la variabile è assente o invalida usiamo il dominio default
+    return new URL("https://stabia-basket.vercel.app");
   }
-  return url;
 }
 
 export const metadata: Metadata = {
   title: "Stabia Basket BTS & NPS – Gestionale",
   description: "Gestionale ufficiale della società sportiva Stabia Basket BTS & NPS",
-  metadataBase: new URL(getBaseUrl()),
+  metadataBase: getMetadataBase(),
 
   /* ── Open Graph (WhatsApp, Telegram, Facebook, LinkedIn…) ── */
   openGraph: {
