@@ -9,7 +9,35 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "Stabia Basket BTS & NPS – Gestionale",
-  description: "Applicazione gestionale per la società sportiva Stabia Basket BTS & NPS",
+  description: "Gestionale ufficiale della società sportiva Stabia Basket BTS & NPS",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://stabia-basket.vercel.app"
+  ),
+
+  /* ── Open Graph (WhatsApp, Telegram, Facebook, LinkedIn…) ── */
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Stabia Basket",
+    title: "Stabia Basket BTS & NPS",
+    description: "Gestionale ufficiale Stabia Basket BTS & NPS",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "Logo Stabia Basket BTS & NPS",
+      },
+    ],
+  },
+
+  /* ── Twitter / X card ── */
+  twitter: {
+    card: "summary",
+    title: "Stabia Basket BTS & NPS",
+    description: "Gestionale ufficiale Stabia Basket BTS & NPS",
+    images: ["/logo.png"],
+  },
 
   /* ── Favicon & icone ── */
   icons: {
