@@ -79,7 +79,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#F4F6F9] flex flex-col">
 
       {/* ── Hero Header ── */}
-      <div className="bg-[#0A1F44] text-white pb-10 pt-10 px-4 text-center relative overflow-hidden transition-all duration-300">
+      <div className="bg-[#0A1F44] text-white pb-6 pt-6 px-4 text-center relative overflow-hidden transition-all duration-300">
         {/* Cerchi decorativi di sfondo */}
         <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#F5B800]/10" />
         <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-[#F5B800]/8" />
@@ -88,47 +88,59 @@ export default function HomePage() {
         {/* Contenuto dinamico Header */}
         {!selectedSector ? (
           <>
-            <div className="relative flex items-center justify-center gap-4 sm:gap-6 mb-4">
+            <div className="relative flex flex-col items-center gap-2 mb-3">
+              {/* Prima riga del triangolo */}
+              <div className="flex gap-4">
+                <Image
+                  src="/logo.png"
+                  alt="Stabia Basket BTS"
+                  width={140}
+                  height={140}
+                  className="w-12 h-auto object-contain drop-shadow-lg"
+                  priority
+                />
+                <Image
+                  src="/logo-femminile.png"
+                  alt="Stabia Basket NPS"
+                  width={140}
+                  height={140}
+                  className="w-12 h-auto object-contain drop-shadow-lg"
+                  priority
+                />
+              </div>
+              {/* Seconda riga del triangolo */}
               <Image
-                src="/logo.png"
-                alt="Stabia Basket BTS"
+                src="/MINIBASKETLOGO.png"
+                alt="Stabia Basket Minibasket"
                 width={140}
                 height={140}
-                className="w-24 sm:w-28 h-auto object-contain drop-shadow-2xl"
-                priority
-              />
-              <Image
-                src="/logo-femminile.png"
-                alt="Stabia Basket NPS"
-                width={140}
-                height={140}
-                className="w-24 sm:w-28 h-auto object-contain drop-shadow-2xl"
+                className="w-12 h-auto object-contain drop-shadow-lg"
                 priority
               />
             </div>
-            <h1 className="relative text-2xl font-extrabold tracking-tight mb-1">
+            <h1 className="relative text-xl sm:text-2xl font-extrabold tracking-tight mb-1">
               Stabia Basket
             </h1>
-            <p className="relative mt-3 text-white/60 text-sm">
+            <p className="relative text-white/60 text-xs sm:text-sm">
               Scegli il settore per continuare
             </p>
           </>
         ) : (
           <>
-            <div className="relative flex items-center justify-center mb-4">
+            <div className="relative flex items-center justify-center mb-3">
               <Image
                 src={activeSectorData?.logo || ""}
                 alt={activeSectorData?.label || ""}
                 width={80}
                 height={80}
-                className="w-16 sm:w-20 h-auto object-contain drop-shadow-xl"
+                className="w-12 sm:w-16 h-auto object-contain drop-shadow-xl"
                 priority
               />
             </div>
-            <h1 className="relative text-xl sm:text-2xl font-extrabold tracking-tight mb-1">
+            <h1 className="relative text-lg sm:text-xl font-extrabold tracking-tight mb-1">
               {activeSectorData?.label}
             </h1>
-            <p className="relative mt-2 text-white/60 text-sm">
+            <p className="relative text-white/60 text-xs sm:text-sm">
               Seleziona la tua squadra
             </p>
           </>
@@ -136,17 +148,17 @@ export default function HomePage() {
       </div>
 
       {/* ── Main Content ── */}
-      <div className="flex-1 w-full mx-auto px-4 mt-6 pb-10 max-w-5xl">
+      <div className="flex-1 w-full mx-auto px-4 mt-4 pb-4 max-w-5xl">
         {!selectedSector ? (
           /* Cards per scegliere il settore */
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 max-w-4xl mx-auto">
             {SECTORS.map((sector) => (
               <button
                 key={sector.id}
                 onClick={() => setSelectedSector(sector.id)}
-                className="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] p-8 flex flex-col items-center justify-center gap-6 hover:shadow-lg hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-3 sm:p-5 flex flex-row md:flex-col items-center justify-start md:justify-center gap-4 hover:shadow-lg hover:scale-105 md:hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
               >
-                <div className="w-32 h-32 relative flex items-center justify-center">
+                <div className="w-10 h-10 md:w-16 md:h-16 flex-shrink-0 relative flex items-center justify-center">
                   <Image
                     src={sector.logo}
                     alt={sector.label}
@@ -154,7 +166,7 @@ export default function HomePage() {
                     className="object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>
-                <h3 className="text-[#0A1F44] font-bold text-lg text-center tracking-tight">
+                <h3 className="text-[#0A1F44] font-bold text-sm md:text-base text-left md:text-center tracking-tight leading-tight">
                   {sector.label}
                 </h3>
               </button>
@@ -165,49 +177,49 @@ export default function HomePage() {
           <div className="max-w-lg mx-auto">
             <button
               onClick={() => setSelectedSector(null)}
-              className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#64748B] hover:text-[#0A1F44] transition-colors"
+              className="mb-4 flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#64748B] hover:text-[#0A1F44] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Torna alle categorie
             </button>
 
-            <div className="bg-white rounded-2xl shadow-lg border border-[#E2E8F0] overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg border border-[#E2E8F0] overflow-hidden">
               {/* Intestazione lista */}
-              <div className="px-5 py-5 border-b border-[#E2E8F0] flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-[#F5B800]/15 flex items-center justify-center flex-shrink-0">
-                  <Trophy className="w-4 h-4 text-[#F5B800]" />
+              <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
+                <div className="w-6 h-6 rounded-lg bg-[#F5B800]/15 flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-3 h-3 text-[#F5B800]" />
                 </div>
                 <span className="text-sm font-bold text-[#0A1F44] tracking-wide">
                   {filteredTeams.length} Squadre disponibili
                 </span>
               </div>
 
-              {/* Righe squadre */}
-              <ul className="divide-y divide-[#F4F6F9]">
+              {/* Righe squadre (scroll se necessario per i dispositivi molto piccoli ma più compatto) */}
+              <ul className="divide-y divide-[#F4F6F9] max-h-[50vh] overflow-y-auto">
                 {filteredTeams.map((team, index) => (
                   <li key={team.name}>
                     <button
                       onClick={() => handleTeamSelect(team.name)}
-                      className="w-full flex items-center gap-4 px-5 py-4 text-left
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left
                                  hover:bg-[#F4F6F9] active:bg-[#E2E8F0]
                                  transition-colors duration-150 group
                                  focus:outline-none focus-visible:bg-[#F4F6F9]"
                       aria-label={`Seleziona squadra ${team.name}`}
                     >
                       {/* Numero */}
-                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#F4F6F9] group-hover:bg-[#E2E8F0]
-                                       text-[#94A3B8] text-xs font-bold flex items-center justify-center
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#F4F6F9] group-hover:bg-[#E2E8F0]
+                                       text-[#94A3B8] text-[10px] font-bold flex items-center justify-center
                                        transition-colors duration-150">
                         {index + 1}
                       </span>
 
                       {/* Nome squadra */}
                       <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-[#0A1F44] text-sm block truncate
+                        <span className="font-semibold text-[#0A1F44] text-xs sm:text-sm block truncate
                                          group-hover:text-[#122558] transition-colors">
                           {team.name}
                         </span>
-                        <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold
+                        <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold
                                           ${CATEGORY_COLORS[team.category]}`}>
                           {team.category}
                         </span>
@@ -227,8 +239,8 @@ export default function HomePage() {
         )}
 
         {/* Footer */}
-        <p className="text-center text-xs text-[#94A3B8] mt-8">
-          © 2024 Stabia Basket BTS &amp; NPS · Tutti i diritti riservati
+        <p className="text-center text-[10px] sm:text-xs text-[#94A3B8] mt-4">
+          © 2024 Stabia Basket BTS &amp; NPS
         </p>
       </div>
     </div>
