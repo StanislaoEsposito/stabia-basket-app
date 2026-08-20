@@ -28,8 +28,11 @@ function getMetadataBase(): URL {
 }
 
 export const metadata: Metadata = {
-  title: "Stabia Basket BTS & NPS – Gestionale",
-  description: "Gestionale ufficiale della società sportiva Stabia Basket BTS & NPS",
+  title: {
+    default: "Stabia Basket",
+    template: "%s | Stabia Basket",
+  },
+  description: "Gestionale ufficiale Stabia Basket",
   metadataBase: getMetadataBase(),
 
   /* ── Open Graph (WhatsApp, Telegram, Facebook, LinkedIn…) ── */
@@ -37,8 +40,8 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
     siteName: "Stabia Basket",
-    title: "Stabia Basket BTS & NPS",
-    description: "Gestionale ufficiale Stabia Basket BTS & NPS",
+    title: "Stabia Basket",
+    description: "Gestionale ufficiale Stabia Basket",
     images: [
       {
         url: "https://stabia-basket-app.vercel.app/web-app-manifest-512x512.png",
@@ -52,8 +55,8 @@ export const metadata: Metadata = {
   /* ── Twitter / X card ── */
   twitter: {
     card: "summary",
-    title: "Stabia Basket BTS & NPS",
-    description: "Gestionale ufficiale Stabia Basket BTS & NPS",
+    title: "Stabia Basket",
+    description: "Gestionale ufficiale Stabia Basket",
     images: ["https://stabia-basket-app.vercel.app/web-app-manifest-512x512.png"],
   },
 
