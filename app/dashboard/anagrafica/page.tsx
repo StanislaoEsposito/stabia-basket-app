@@ -63,8 +63,11 @@ const EMPTY_FORM: NewPlayerForm = {
 /* ─────────────────────────────────────────────
    Componente: Riga giocatore su MOBILE (Card)
 ───────────────────────────────────────────── */
-function PlayerCard({ player, index, onDelete }: {
-  player: Player; index: number; onDelete: (id: string, name: string) => void;
+function PlayerCard({ player, index, onDelete, onToggleCaptain }: {
+  player: Player; 
+  index: number; 
+  onDelete: (id: string, name: string) => void;
+  onToggleCaptain: (id: string, status: boolean) => void;
 }) {
   return (
     <div className="bg-white rounded-xl border border-[#E2E8F0] px-4 py-3 flex items-center gap-4 shadow-sm group">
@@ -74,9 +77,23 @@ function PlayerCard({ player, index, onDelete }: {
       </span>
       {/* Dati */}
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-[#0A1F44] text-sm leading-tight truncate">
-          {player.last_name} {player.first_name} {player.is_captain && <span className="text-[#F5B800] text-xs ml-1">(C)</span>}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-bold text-[#0A1F44] text-sm leading-tight truncate">
+            {player.last_name} {player.first_name}
+          </p>
+          <button
+            onClick={() => onToggleCaptain(player.id, player.is_captain)}
+            className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors ${
+              player.is_captain 
+                ? "bg-[#F5B800]/20 text-[#D97706]" 
+                : "text-[#CBD5E1] bg-transparent hover:text-[#94A3B8] hover:bg-[#F4F6F9]"
+            }`}
+            aria-label="Toggle Capitano"
+            title={player.is_captain ? "Rimuovi capitano" : "Rendi capitano"}
+          >
+            (C)
+          </button>
+        </div>
         <p className="text-xs text-[#94A3B8] mt-0.5">
           {player.dob ? formatDob(player.dob) : "Nascita N/D"}
           {player.phone_athlete && ` · Cel: ${player.phone_athlete}`}
@@ -99,9 +116,10 @@ function PlayerCard({ player, index, onDelete }: {
 /* ─────────────────────────────────────────────
    Componente: Tabella giocatori su DESKTOP
 ───────────────────────────────────────────── */
-function PlayersTable({ players, onDelete }: {
+function PlayersTable({ players, onDelete, onToggleCaptain }: {
   players: Player[];
   onDelete: (id: string, name: string) => void;
+  onToggleCaptain: (id: string, status: boolean) => void;
 }) {
   const [sortField, setSortField] = useState<"last_name" | "first_name" | "dob" | "jersey_number">("last_name");
   const [sortAsc,   setSortAsc]   = useState(true);
@@ -153,7 +171,21 @@ function PlayersTable({ players, onDelete }: {
               className="border-b border-[#F4F6F9] last:border-0 hover:bg-[#F8FAFC] transition-colors group">
               <td className="px-4 py-3 text-[#0A1F44] font-bold text-sm text-center w-16">{player.jersey_number || "-"}</td>
               <td className="px-4 py-3 font-semibold text-[#0A1F44]">
-                {player.last_name} {player.is_captain && <span className="text-[#F5B800] ml-1">(C)</span>}
+                <div className="flex items-center gap-2">
+                  <span>{player.last_name}</span>
+                  <button
+                    onClick={() => onToggleCaptain(player.id, player.is_captain)}
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors ${
+                      player.is_captain 
+                        ? "bg-[#F5B800]/20 text-[#D97706]" 
+                        : "text-[#CBD5E1] bg-transparent hover:text-[#94A3B8] hover:bg-[#F4F6F9]"
+                    }`}
+                    aria-label="Toggle Capitano"
+                    title={player.is_captain ? "Rimuovi capitano" : "Rendi capitano"}
+                  >
+                    (C)
+                  </button>
+                </div>
               </td>
               <td className="px-4 py-3 text-[#334155]">{player.first_name}</td>
               <td className="px-4 py-3 text-[#64748B] font-mono text-xs">{formatDob(player.dob)}</td>
@@ -512,6 +544,48 @@ function AnagraficaContent() {
     } catch (e) { console.error("Errore eliminazione giocatore:", e); }
   };
 
+  /* ── Quick Toggle Capitano ── */
+  const handleToggleCaptain = async (playerId: string, currentStatus: boolean) => {
+    if (!teamId) return;
+    const newStatus = !currentStatus;
+
+    // Aggiornamento ottimistico dell'interfaccia (Optimistic UI)
+    setPlayers((prev) =>
+      prev.map((p) => {
+        if (p.id === playerId) {
+          return { ...p, is_captain: newStatus };
+        }
+        // Se stiamo eleggendo un nuovo capitano, rimuoviamo lo status a tutti gli altri
+        if (newStatus && p.is_captain) {
+          return { ...p, is_captain: false };
+        }
+        return p;
+      })
+    );
+
+    try {
+      if (newStatus) {
+        // Togli capitano agli altri giocatori della stessa squadra
+        await supabase
+          .from("players")
+          .update({ is_captain: false })
+          .eq("team_id", teamId);
+      }
+      
+      // Imposta il nuovo status al giocatore scelto
+      const { error } = await supabase
+        .from("players")
+        .update({ is_captain: newStatus })
+        .eq("id", playerId);
+        
+      if (error) throw error;
+    } catch (err) {
+      console.error("Errore durante l'aggiornamento del capitano:", err);
+      // In caso di errore, ricarica i dati reali per sicurezza
+      loadData();
+    }
+  };
+
   /* ── Esporta PDF ── */
   const handleExportPdf = async () => {
     if (players.length === 0) return;
@@ -704,13 +778,23 @@ function AnagraficaContent() {
             {/* Mobile */}
             <div className="flex flex-col gap-2.5 sm:hidden">
               {players.map((p, i) => (
-                <PlayerCard key={p.id} player={p} index={i} onDelete={handleDeletePlayer} />
+                <PlayerCard 
+                  key={p.id} 
+                  player={p} 
+                  index={i} 
+                  onDelete={handleDeletePlayer} 
+                  onToggleCaptain={handleToggleCaptain}
+                />
               ))}
             </div>
 
             {/* Desktop */}
             <div className="hidden sm:block">
-              <PlayersTable players={players} onDelete={handleDeletePlayer} />
+              <PlayersTable 
+                players={players} 
+                onDelete={handleDeletePlayer} 
+                onToggleCaptain={handleToggleCaptain}
+              />
             </div>
           </>
         )}
