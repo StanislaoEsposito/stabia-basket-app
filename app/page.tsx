@@ -76,19 +76,19 @@ export default function HomePage() {
   const activeSectorData = SECTORS.find(s => s.id === selectedSector);
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-[#F4F6F9] flex flex-col justify-between">
+    <div className="h-[100dvh] w-full flex flex-col overflow-hidden bg-slate-50">
 
-      {/* ── Hero Header ── */}
-      <div className="bg-[#0A1F44] text-white pb-6 pt-6 px-4 text-center relative flex-shrink-0 transition-all duration-300">
+      {/* ── Header (Blu) ── */}
+      <header className="shrink-0 bg-[#0A1F44] flex flex-col items-center pt-8 pb-6 rounded-b-[2rem] relative transition-all duration-300">
         {/* Cerchi decorativi di sfondo */}
-        <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#F5B800]/10" />
-        <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-[#F5B800]/8" />
-        <div className="absolute top-4 right-8 w-20 h-20 rounded-full bg-white/5" />
+        <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#F5B800]/10 pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-[#F5B800]/8 pointer-events-none" />
+        <div className="absolute top-4 right-8 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
 
         {/* Contenuto dinamico Header */}
         {!selectedSector ? (
           <>
-            <div className="relative flex flex-col items-center gap-2 mb-3">
+            <div className="relative z-10 flex flex-col items-center gap-2 mb-3">
               {/* Prima riga del triangolo */}
               <div className="flex gap-4">
                 <Image
@@ -118,16 +118,16 @@ export default function HomePage() {
                 priority
               />
             </div>
-            <h1 className="relative text-xl sm:text-2xl font-extrabold tracking-tight mb-1">
+            <h1 className="relative z-10 text-xl sm:text-2xl font-extrabold tracking-tight text-white mb-1">
               Stabia Basket
             </h1>
-            <p className="relative text-white/60 text-xs sm:text-sm">
+            <p className="relative z-10 text-white/60 text-xs sm:text-sm">
               Scegli il settore per continuare
             </p>
           </>
         ) : (
           <>
-            <div className="relative flex items-center justify-center mb-3">
+            <div className="relative z-10 flex items-center justify-center mb-3">
               <Image
                 src={activeSectorData?.logo || ""}
                 alt={activeSectorData?.label || ""}
@@ -137,28 +137,28 @@ export default function HomePage() {
                 priority
               />
             </div>
-            <h1 className="relative text-lg sm:text-xl font-extrabold tracking-tight mb-1">
+            <h1 className="relative z-10 text-lg sm:text-xl font-extrabold tracking-tight text-white mb-1">
               {activeSectorData?.label}
             </h1>
-            <p className="relative text-white/60 text-xs sm:text-sm">
+            <p className="relative z-10 text-white/60 text-xs sm:text-sm">
               Seleziona la tua squadra
             </p>
           </>
         )}
-      </div>
+      </header>
 
-      {/* ── Main Content ── */}
-      <div className="flex-1 w-full mx-auto px-4 flex flex-col justify-center max-w-5xl">
+      {/* ── Main (Pulsanti o Lista) ── */}
+      <main className="flex-1 w-full max-w-md mx-auto flex flex-col justify-start pt-8 px-4 gap-4">
         {!selectedSector ? (
           /* Cards per scegliere il settore */
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 w-full max-w-4xl mx-auto">
+          <>
             {SECTORS.map((sector) => (
               <button
                 key={sector.id}
                 onClick={() => setSelectedSector(sector.id)}
-                className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-3 sm:p-5 flex flex-row md:flex-col items-center justify-start md:justify-center gap-4 hover:shadow-lg hover:scale-105 md:hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-row items-center justify-start gap-4 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
               >
-                <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 relative flex items-center justify-center">
+                <div className="w-16 h-16 flex-shrink-0 relative flex items-center justify-center">
                   <Image
                     src={sector.logo}
                     alt={sector.label}
@@ -166,26 +166,26 @@ export default function HomePage() {
                     className="object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>
-                <h3 className="text-[#0A1F44] font-bold text-sm md:text-base text-left md:text-center tracking-tight leading-tight">
+                <h3 className="text-[#0A1F44] font-bold text-sm text-left tracking-tight leading-tight">
                   {sector.label}
                 </h3>
               </button>
             ))}
-          </div>
+          </>
         ) : (
           /* Lista Squadre per il settore scelto */
-          <div className="w-full max-w-lg mx-auto flex flex-col max-h-[100%] py-2">
+          <div className="flex flex-col w-full h-full min-h-0 pb-2">
             <button
               onClick={() => setSelectedSector(null)}
-              className="mb-3 flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#64748B] hover:text-[#0A1F44] transition-colors flex-shrink-0"
+              className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[#0A1F44] transition-colors flex-shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
               Torna alle categorie
             </button>
 
-            <div className="bg-white rounded-xl shadow-lg border border-[#E2E8F0] overflow-hidden flex flex-col min-h-0">
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-col min-h-0">
               {/* Intestazione lista */}
-              <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center gap-3 flex-shrink-0">
+              <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-3 flex-shrink-0">
                 <div className="w-6 h-6 rounded-lg bg-[#F5B800]/15 flex items-center justify-center flex-shrink-0">
                   <Trophy className="w-3 h-3 text-[#F5B800]" />
                 </div>
@@ -195,41 +195,31 @@ export default function HomePage() {
               </div>
 
               {/* Righe squadre (scroll confinato qui) */}
-              <ul className="divide-y divide-[#F4F6F9] overflow-y-auto min-h-0">
+              <ul className="divide-y divide-slate-100 overflow-y-auto min-h-0">
                 {filteredTeams.map((team, index) => (
                   <li key={team.name}>
                     <button
                       onClick={() => handleTeamSelect(team.name)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left
-                                 hover:bg-[#F4F6F9] active:bg-[#E2E8F0]
-                                 transition-colors duration-150 group
-                                 focus:outline-none focus-visible:bg-[#F4F6F9]"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 active:bg-slate-100 transition-colors duration-150 group focus:outline-none"
                       aria-label={`Seleziona squadra ${team.name}`}
                     >
                       {/* Numero */}
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#F4F6F9] group-hover:bg-[#E2E8F0]
-                                       text-[#94A3B8] text-[10px] font-bold flex items-center justify-center
-                                       transition-colors duration-150">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 group-hover:bg-slate-200 text-slate-400 text-[10px] font-bold flex items-center justify-center transition-colors duration-150">
                         {index + 1}
                       </span>
 
                       {/* Nome squadra */}
                       <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-[#0A1F44] text-xs sm:text-sm block truncate
-                                         group-hover:text-[#122558] transition-colors">
+                        <span className="font-semibold text-[#0A1F44] text-sm block truncate group-hover:text-[#122558] transition-colors">
                           {team.name}
                         </span>
-                        <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold
-                                          ${CATEGORY_COLORS[team.category]}`}>
+                        <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${CATEGORY_COLORS[team.category]}`}>
                           {team.category}
                         </span>
                       </div>
 
                       {/* Arrow */}
-                      <ChevronRight
-                        className="flex-shrink-0 w-4 h-4 text-[#CBD5E1] group-hover:text-[#F5B800]
-                                     group-hover:translate-x-0.5 transition-all duration-150"
-                      />
+                      <ChevronRight className="flex-shrink-0 w-4 h-4 text-slate-300 group-hover:text-[#F5B800] group-hover:translate-x-0.5 transition-all duration-150" />
                     </button>
                   </li>
                 ))}
@@ -237,14 +227,14 @@ export default function HomePage() {
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       {/* ── Footer ── */}
-      <div className="pb-4 pt-2 flex-shrink-0">
-        <p className="text-center text-[10px] sm:text-xs text-[#94A3B8]">
+      <footer className="shrink-0 py-6 text-center">
+        <p className="text-[10px] text-slate-400">
           © 2024 Stabia Basket BTS &amp; NPS
         </p>
-      </div>
+      </footer>
     </div>
   );
 }
