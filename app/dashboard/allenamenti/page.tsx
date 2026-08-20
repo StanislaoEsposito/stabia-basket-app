@@ -83,9 +83,8 @@ function StoricoSection({ players, practices, storicoMap, loading }: {
   return (
     <div className="space-y-2">
       {sortedPlayers.map((player) => {
-        const registeredPractices = sortedPractices.filter(pr => storicoMap[player.id]?.[pr.id] !== undefined);
-        const presenti = registeredPractices.filter(pr => storicoMap[player.id][pr.id] === true).length;
-        const total    = registeredPractices.length;
+        const total    = sortedPractices.length;
+        const presenti = sortedPractices.filter(pr => storicoMap[player.id]?.[pr.id] === true).length;
         const pct      = total > 0 ? Math.round((presenti / total) * 100) : null;
         const isOpen   = openId === player.id;
 
@@ -104,7 +103,7 @@ function StoricoSection({ players, practices, storicoMap, loading }: {
                   {player.last_name} {player.first_name}
                 </p>
                 <p className="text-xs text-[#64748B] mt-0.5">
-                  {total > 0 ? `${presenti}/${total} presenze registrate` : "Nessun dato"}
+                  {total > 0 ? `${presenti}/${total} presenze` : "Nessun allenamento"}
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -130,17 +129,15 @@ function StoricoSection({ players, practices, storicoMap, loading }: {
                 ) : (
                   <div className="space-y-1.5">
                     {sortedPractices.map((pr) => {
-                      const val    = storicoMap[player.id]?.[pr.id];
-                      const hasDat = val !== undefined;
+                      const isPresent = storicoMap[player.id]?.[pr.id] === true;
+                      
                       return (
                         <div key={pr.id} className="flex items-center justify-between gap-4 py-1 border-b border-[#F8FAFC] last:border-0">
                           <span className="text-xs text-[#64748B] font-mono">{fmtDate(pr.practice_date)}</span>
-                          {hasDat ? (
-                            val
-                              ? <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600"><CheckCircle2 className="w-3.5 h-3.5" /> Presente</span>
-                              : <span className="flex items-center gap-1 text-xs font-semibold text-red-500"><XCircle className="w-3.5 h-3.5" /> Assente</span>
+                          {isPresent ? (
+                            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600"><CheckCircle2 className="w-3.5 h-3.5" /> Presente</span>
                           ) : (
-                            <span className="text-xs text-[#CBD5E1] italic">non registrato</span>
+                            <span className="flex items-center gap-1 text-xs font-semibold text-red-500"><XCircle className="w-3.5 h-3.5" /> Assente</span>
                           )}
                         </div>
                       );
@@ -240,34 +237,39 @@ function AllenamentiContent() {
     finally { setPracticeLoading(false); }
   };
 
-  /* ─── Toggle presenza ─── */
-  const handleToggle = async (playerId: string) => {
-    if (!selectedPractice || savingPlayer) return;
-    setSavingPlayer(playerId);
-    const newValue = !attendance[playerId];
-    setAttendance(prev => ({ ...prev, [playerId]: newValue }));
+  /* ─── Toggle presenza (solo stato locale) ─── */
+  const handleToggle = (playerId: string) => {
+    setAttendance(prev => ({ ...prev, [playerId]: !prev[playerId] }));
+  };
+
+  /* ─── Salva presenze (Upsert di massa) ─── */
+  const handleSaveAll = async () => {
+    if (!selectedPractice || !players.length) return;
+    setSavingPlayer("all");
     try {
-      const { error } = await supabase.from("attendances").upsert(
-        { practice_id: selectedPractice.id, player_id: playerId, is_present: newValue },
-        { onConflict: "practice_id,player_id" }
-      );
+      const rows = players.map(p => ({
+        practice_id: selectedPractice.id,
+        player_id: p.id,
+        is_present: !!attendance[p.id]
+      }));
+      const { error } = await supabase.from("attendances").upsert(rows, { onConflict: "practice_id,player_id" });
       if (error) throw error;
-      setStoricoLoaded(false);
+      setStoricoLoaded(false); // Invalida cache storico
+      alert("Presenze salvate correttamente!");
     } catch (e) {
-      setAttendance(prev => ({ ...prev, [playerId]: !newValue }));
-      console.error("Errore presenza:", e);
-    } finally { setSavingPlayer(null); }
+      console.error("Errore salvataggio presenze:", e);
+      alert("Errore nel salvataggio. Riprova.");
+    } finally {
+      setSavingPlayer(null);
+    }
   };
 
   /* ─── Segna tutti ─── */
-  const handleMarkAll = async (present: boolean) => {
+  const handleMarkAll = (present: boolean) => {
     if (!selectedPractice || !players.length) return;
     const newMap: AttendanceMap = {};
     players.forEach(p => { newMap[p.id] = present; });
     setAttendance(newMap);
-    const rows = players.map(p => ({ practice_id: selectedPractice.id, player_id: p.id, is_present: present }));
-    await supabase.from("attendances").upsert(rows, { onConflict: "practice_id,player_id" });
-    setStoricoLoaded(false);
   };
 
   /* ─── Elimina allenamento ─── */
@@ -475,7 +477,12 @@ function AllenamentiContent() {
                   </div>
 
                   {/* Azioni rapide */}
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap items-center mt-3 sm:mt-0">
+                    <Button variant="primary" size="sm" onClick={handleSaveAll} disabled={savingPlayer === "all"}>
+                      {savingPlayer === "all" ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
+                      Salva Presenze
+                    </Button>
+                    <div className="h-6 w-px bg-[#E2E8F0] mx-1 hidden sm:block" />
                     <button onClick={() => handleMarkAll(true)}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
                       Tutti ✓
@@ -484,10 +491,10 @@ function AllenamentiContent() {
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#F4F6F9] text-[#64748B] hover:bg-[#E2E8F0] transition-colors">
                       Nessuno
                     </button>
-                    {/* ── Elimina allenamento ── */}
+                    <div className="h-6 w-px bg-[#E2E8F0] mx-1 hidden sm:block" />
                     <button onClick={handleDeletePractice}
                       className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors border border-red-200">
-                      <Trash2 className="w-3.5 h-3.5" /> Elimina sessione
+                      <Trash2 className="w-3.5 h-3.5" /> Elimina
                     </button>
                   </div>
                 </div>
