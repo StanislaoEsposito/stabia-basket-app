@@ -31,6 +31,12 @@ function formatDob(dob: string | null): string {
   }
 }
 
+function formatPlayerName(player: Player): string {
+  const cap = player.is_captain ? " (C)" : "";
+  const num = player.jersey_number ? `[#${player.jersey_number}] ` : "";
+  return `${num}${player.last_name} ${player.first_name}${cap}`;
+}
+
 /* ─────────────────────────────────────────────
    Tipi
 ───────────────────────────────────────────── */
@@ -38,9 +44,21 @@ interface NewPlayerForm {
   first_name: string;
   last_name: string;
   dob: string;
+  jersey_number: string;
+  is_captain: boolean;
+  phone_athlete: string;
+  phone_parent: string;
 }
 
-const EMPTY_FORM: NewPlayerForm = { first_name: "", last_name: "", dob: "" };
+const EMPTY_FORM: NewPlayerForm = { 
+  first_name: "", 
+  last_name: "", 
+  dob: "", 
+  jersey_number: "", 
+  is_captain: false, 
+  phone_athlete: "", 
+  phone_parent: "" 
+};
 
 /* ─────────────────────────────────────────────
    Componente: Riga giocatore su MOBILE (Card)
@@ -52,15 +70,17 @@ function PlayerCard({ player, index, onDelete }: {
     <div className="bg-white rounded-xl border border-[#E2E8F0] px-4 py-3 flex items-center gap-4 shadow-sm group">
       {/* Numero */}
       <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#0A1F44] text-white text-xs font-bold flex items-center justify-center">
-        {index + 1}
+        {player.jersey_number ? player.jersey_number : index + 1}
       </span>
       {/* Dati */}
       <div className="flex-1 min-w-0">
         <p className="font-bold text-[#0A1F44] text-sm leading-tight truncate">
-          {player.last_name} {player.first_name}
+          {player.last_name} {player.first_name} {player.is_captain && <span className="text-[#F5B800] text-xs ml-1">(C)</span>}
         </p>
         <p className="text-xs text-[#94A3B8] mt-0.5">
-          {player.dob ? `Nato il ${formatDob(player.dob)}` : "Data di nascita non inserita"}
+          {player.dob ? formatDob(player.dob) : "Nascita N/D"}
+          {player.phone_athlete && ` · Cel: ${player.phone_athlete}`}
+          {player.phone_parent && ` · Gen: ${player.phone_parent}`}
         </p>
       </div>
       {/* Elimina — sempre visibile su mobile */}
@@ -83,7 +103,7 @@ function PlayersTable({ players, onDelete }: {
   players: Player[];
   onDelete: (id: string, name: string) => void;
 }) {
-  const [sortField, setSortField] = useState<"last_name" | "first_name" | "dob">("last_name");
+  const [sortField, setSortField] = useState<"last_name" | "first_name" | "dob" | "jersey_number">("last_name");
   const [sortAsc,   setSortAsc]   = useState(true);
 
   const sorted = [...players].sort((a, b) => {
@@ -107,7 +127,10 @@ function PlayersTable({ players, onDelete }: {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-            <th className="text-left px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider w-12">N°</th>
+            <th className="text-left px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider cursor-pointer select-none"
+              onClick={() => handleSort("jersey_number")}>
+              Maglia <SortIcon field="jersey_number" />
+            </th>
             <th className="text-left px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider cursor-pointer hover:text-[#0A1F44] select-none"
               onClick={() => handleSort("last_name")}>
               Cognome <SortIcon field="last_name" />
@@ -118,19 +141,26 @@ function PlayersTable({ players, onDelete }: {
             </th>
             <th className="text-left px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider cursor-pointer hover:text-[#0A1F44] select-none"
               onClick={() => handleSort("dob")}>
-              Data di Nascita <SortIcon field="dob" />
+              Nascita <SortIcon field="dob" />
             </th>
+            <th className="text-left px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider">Telefoni</th>
             <th className="w-12" />
           </tr>
         </thead>
         <tbody>
-          {sorted.map((player, i) => (
+          {sorted.map((player) => (
             <tr key={player.id}
               className="border-b border-[#F4F6F9] last:border-0 hover:bg-[#F8FAFC] transition-colors group">
-              <td className="px-4 py-3 text-[#94A3B8] font-mono text-xs">{i + 1}</td>
-              <td className="px-4 py-3 font-semibold text-[#0A1F44]">{player.last_name}</td>
+              <td className="px-4 py-3 text-[#0A1F44] font-bold text-sm text-center w-16">{player.jersey_number || "-"}</td>
+              <td className="px-4 py-3 font-semibold text-[#0A1F44]">
+                {player.last_name} {player.is_captain && <span className="text-[#F5B800] ml-1">(C)</span>}
+              </td>
               <td className="px-4 py-3 text-[#334155]">{player.first_name}</td>
               <td className="px-4 py-3 text-[#64748B] font-mono text-xs">{formatDob(player.dob)}</td>
+              <td className="px-4 py-3 text-[#64748B] text-xs">
+                {player.phone_athlete && <div>Atl: {player.phone_athlete}</div>}
+                {player.phone_parent && <div>Gen: {player.phone_parent}</div>}
+              </td>
               <td className="px-4 py-3 text-right">
                 <button
                   onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
@@ -180,11 +210,11 @@ function AddPlayerModal({
   return (
     /* Overlay */
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm overflow-y-auto"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      {/* Panel — bottom sheet su mobile, centered modal su desktop */}
-      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl">
+      {/* Panel */}
+      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl mt-12 sm:mt-0 mb-auto sm:mb-0">
         {/* Handle bar (mobile) */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-10 h-1 rounded-full bg-[#E2E8F0]" />
@@ -208,7 +238,7 @@ function AddPlayerModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">
+        <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
           {/* Errore */}
           {displayError && (
             <div className="flex items-center gap-2 bg-red-50 text-red-700 text-sm px-3 py-2.5 rounded-lg border border-red-200">
@@ -217,37 +247,69 @@ function AddPlayerModal({
             </div>
           )}
 
-          {/* Cognome */}
-          <div>
-            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-              Cognome <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.last_name}
-              onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
-              placeholder="es. Rossi"
-              autoFocus
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
-                         focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
-                         placeholder:text-[#CBD5E1] bg-[#F8FAFC]"
-            />
+          <div className="flex gap-4">
+            {/* Cognome */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+                Cognome <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.last_name}
+                onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
+                placeholder="es. Rossi"
+                autoFocus
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
+                           placeholder:text-[#CBD5E1] bg-[#F8FAFC]"
+              />
+            </div>
+            {/* Nome */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+                Nome <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.first_name}
+                onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
+                placeholder="es. Mario"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
+                           placeholder:text-[#CBD5E1] bg-[#F8FAFC]"
+              />
+            </div>
           </div>
 
-          {/* Nome */}
-          <div>
-            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-              Nome <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.first_name}
-              onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
-              placeholder="es. Mario"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
-                         focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
-                         placeholder:text-[#CBD5E1] bg-[#F8FAFC]"
-            />
+          <div className="flex gap-4 items-end">
+            {/* Numero Maglia */}
+            <div className="w-1/3">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+                N° Maglia
+              </label>
+              <input
+                type="text"
+                value={form.jersey_number}
+                onChange={(e) => setForm((p) => ({ ...p, jersey_number: e.target.value }))}
+                placeholder="es. 23"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
+                           bg-[#F8FAFC]"
+              />
+            </div>
+            {/* Capitano Toggle */}
+            <div className="flex-1 flex items-center mb-2.5 gap-2">
+              <input
+                type="checkbox"
+                id="is_captain"
+                checked={form.is_captain}
+                onChange={(e) => setForm((p) => ({ ...p, is_captain: e.target.checked }))}
+                className="w-4 h-4 rounded text-[#0A1F44] focus:ring-[#0A1F44] cursor-pointer"
+              />
+              <label htmlFor="is_captain" className="text-sm font-semibold text-[#0A1F44] cursor-pointer select-none">
+                Capitano della squadra
+              </label>
+            </div>
           </div>
 
           {/* Data di nascita */}
@@ -265,8 +327,40 @@ function AddPlayerModal({
             />
           </div>
 
+          {/* Telefoni */}
+          <div className="flex gap-4 flex-col sm:flex-row">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+                Cellulare Atleta
+              </label>
+              <input
+                type="tel"
+                value={form.phone_athlete}
+                onChange={(e) => setForm((p) => ({ ...p, phone_athlete: e.target.value }))}
+                placeholder="+39 333..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
+                           placeholder:text-[#CBD5E1] bg-[#F8FAFC]"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+                Cellulare Genitore
+              </label>
+              <input
+                type="tel"
+                value={form.phone_parent}
+                onChange={(e) => setForm((p) => ({ ...p, phone_parent: e.target.value }))}
+                placeholder="+39 333..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
+                           placeholder:text-[#CBD5E1] bg-[#F8FAFC]"
+              />
+            </div>
+          </div>
+
           {/* Pulsanti */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-4 border-t border-[#E2E8F0] mt-4">
             <Button
               type="button"
               variant="ghost"
@@ -374,6 +468,10 @@ function AnagraficaContent() {
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         dob: form.dob || null,
+        jersey_number: form.jersey_number.trim() || null,
+        is_captain: form.is_captain,
+        phone_athlete: form.phone_athlete.trim() || null,
+        phone_parent: form.phone_parent.trim() || null,
       };
 
       const { data, error } = await supabase
@@ -463,14 +561,14 @@ function AnagraficaContent() {
 
       const rows = sorted.map((p, i) => [
         (i + 1).toString(),
-        p.last_name.toUpperCase(),
-        p.first_name,
+        formatPlayerName(p),
         formatDob(p.dob),
+        p.phone_athlete || p.phone_parent || "",
       ]);
 
       autoTable(doc, {
         startY: 40,
-        head: [["N°", "Cognome", "Nome", "Data di Nascita"]],
+        head: [["N°", "Giocatore (Maglia/Cap.)", "Data di Nascita", "Contatti"]],
         body: rows,
         theme: "striped",
         styles: {
@@ -487,9 +585,10 @@ function AnagraficaContent() {
         },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         columnStyles: {
-          0: { cellWidth: 12, halign: "center", textColor: [148, 163, 184] },
+          0: { cellWidth: 10, halign: "center", textColor: [148, 163, 184] },
           1: { fontStyle: "bold" },
-          3: { halign: "center", textColor: [100, 116, 139] },
+          2: { halign: "center", textColor: [100, 116, 139], cellWidth: 35 },
+          3: { textColor: [100, 116, 139] },
         },
         margin: { left: 14, right: 14 },
       });

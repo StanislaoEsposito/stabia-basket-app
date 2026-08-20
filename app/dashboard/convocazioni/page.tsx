@@ -397,13 +397,12 @@ function ConvocazioniContent() {
       } else {
         const rows = sorted.map((p, i) => [
           (i + 1).toString(),
-          p.last_name.toUpperCase(),
-          p.first_name,
+          `${p.jersey_number ? `[#${p.jersey_number}] ` : ""}${p.last_name.toUpperCase()} ${p.first_name}${p.is_captain ? " (C)" : ""}`
         ]);
 
         autoTable(doc, {
           startY: 43,
-          head: [["N°", "Cognome", "Nome"]],
+          head: [["N°", "Giocatore (Maglia/Cap.)"]],
           body: rows,
           theme: "striped",
           styles: { fontSize: 11, cellPadding: 4, textColor: [30, 41, 59] },

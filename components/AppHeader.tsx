@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
 
 interface AppHeaderProps {
   /** Testo principale nell'header */
@@ -25,27 +26,36 @@ export default function AppHeader({
   backHref = "/",
   backLabel = "Cambia Squadra",
 }: AppHeaderProps) {
+  const searchParams = useSearchParams();
+  const team = searchParams?.get("team") || "";
+
+  // Logica di selezione del logo
+  const isFemminile = ["SERIE B FEMM.", "U19 FEMM.", "U15 FEMM."].includes(team);
+  const isMinibasket =
+    team.includes("AQUILOTTI") ||
+    team.includes("PULCINI") ||
+    team.includes("SCOIATTOLI");
+
+  let logoSrc = "/logo.png";
+  if (isFemminile) {
+    logoSrc = "/logo-femminile.png";
+  } else if (isMinibasket) {
+    logoSrc = "/MINIBASKETLOGO.png";
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-[#0A1F44] text-white shadow-lg">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
         {/* Logo + Testi */}
         <div className="flex items-center gap-3 min-w-0">
-          {/* Doppio logo nell'header — Maschile + Femminile */}
-          <div className="flex-shrink-0 flex items-center gap-1.5 h-10">
+          {/* Singolo logo dinamico */}
+          <div className="flex-shrink-0 flex items-center h-10 w-12 justify-center">
             <Image
-              src="/logo.png"
-              alt="Stabia Basket BTS – Maschile"
-              width={40}
-              height={40}
-              className="h-9 w-auto object-contain"
-              priority
-            />
-            <Image
-              src="/logo-femminile.png"
-              alt="Stabia Basket NPS – Femminile"
-              width={40}
-              height={40}
-              className="h-9 w-auto object-contain"
+              src={logoSrc}
+              alt="Logo Stabia Basket"
+              width={80}
+              height={80}
+              className="w-12 h-auto max-h-10 object-contain"
               priority
             />
           </div>
@@ -53,12 +63,11 @@ export default function AppHeader({
             <p className="text-xs font-medium text-[#F5B800] uppercase tracking-widest leading-none">
               Stabia Basket
             </p>
-            {subtitle && (
+            {subtitle ? (
               <h1 className="text-base font-bold truncate leading-tight mt-0.5">
                 {subtitle}
               </h1>
-            )}
-            {!subtitle && (
+            ) : (
               <h1 className="text-base font-bold truncate leading-tight mt-0.5">
                 Gestionale
               </h1>

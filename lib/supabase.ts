@@ -65,6 +65,10 @@ export type Player = {
   med_expiry: string | null;    // Scadenza certificato medico
   member_type: string | null;   // "FIP" | "Libertas"
   member_expiry: string | null; // Scadenza tesseramento
+  jersey_number: string | null; // Numero Maglia
+  is_captain: boolean;          // Capitano (boolean)
+  phone_athlete: string | null; // Cellulare Atleta
+  phone_parent: string | null;  // Cellulare Genitore
 };
 
 export type Apparel = {
