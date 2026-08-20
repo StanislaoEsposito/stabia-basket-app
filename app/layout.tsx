@@ -41,11 +41,11 @@ export const metadata: Metadata = {
     description: "Gestionale ufficiale Stabia Basket BTS & NPS",
     images: [
       {
-        url: "/logo.png",
+        url: "https://stabia-basket-app.vercel.app/web-app-manifest-512x512.png",
         width: 512,
         height: 512,
-        alt: "Logo Stabia Basket BTS & NPS",
-      },
+        alt: "Stabia Basket Gestionale",
+      }
     ],
   },
 
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Stabia Basket BTS & NPS",
     description: "Gestionale ufficiale Stabia Basket BTS & NPS",
-    images: ["/logo.png"],
+    images: ["https://stabia-basket-app.vercel.app/web-app-manifest-512x512.png"],
   },
 
   /* ── Favicon & icone ── */
