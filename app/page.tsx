@@ -148,7 +148,7 @@ export default function HomePage() {
       </header>
 
       {/* ── Main (Pulsanti o Lista) ── */}
-      <main className="flex-1 w-full max-w-md mx-auto flex flex-col justify-start pt-8 px-4 gap-4">
+      <main className="flex-1 w-full max-w-md mx-auto flex flex-col justify-start pt-8 pb-12 px-4 gap-4 overflow-y-auto">
         {!selectedSector ? (
           /* Cards per scegliere il settore */
           <>
