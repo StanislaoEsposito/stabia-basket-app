@@ -76,10 +76,10 @@ export default function HomePage() {
   const activeSectorData = SECTORS.find(s => s.id === selectedSector);
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-[#F4F6F9] flex flex-col justify-between">
 
       {/* ── Hero Header ── */}
-      <div className="bg-[#0A1F44] text-white pb-6 pt-6 px-4 text-center relative overflow-hidden transition-all duration-300">
+      <div className="bg-[#0A1F44] text-white pb-6 pt-6 px-4 text-center relative flex-shrink-0 transition-all duration-300">
         {/* Cerchi decorativi di sfondo */}
         <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#F5B800]/10" />
         <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-[#F5B800]/8" />
@@ -148,10 +148,10 @@ export default function HomePage() {
       </div>
 
       {/* ── Main Content ── */}
-      <div className="flex-1 w-full mx-auto px-4 mt-4 pb-4 max-w-5xl">
+      <div className="flex-1 w-full mx-auto px-4 flex flex-col justify-center max-w-5xl">
         {!selectedSector ? (
           /* Cards per scegliere il settore */
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 w-full max-w-4xl mx-auto">
             {SECTORS.map((sector) => (
               <button
                 key={sector.id}
@@ -174,18 +174,18 @@ export default function HomePage() {
           </div>
         ) : (
           /* Lista Squadre per il settore scelto */
-          <div className="max-w-lg mx-auto">
+          <div className="w-full max-w-lg mx-auto flex flex-col max-h-[100%] py-2">
             <button
               onClick={() => setSelectedSector(null)}
-              className="mb-4 flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#64748B] hover:text-[#0A1F44] transition-colors"
+              className="mb-3 flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#64748B] hover:text-[#0A1F44] transition-colors flex-shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
               Torna alle categorie
             </button>
 
-            <div className="bg-white rounded-xl shadow-lg border border-[#E2E8F0] overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg border border-[#E2E8F0] overflow-hidden flex flex-col min-h-0">
               {/* Intestazione lista */}
-              <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
+              <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center gap-3 flex-shrink-0">
                 <div className="w-6 h-6 rounded-lg bg-[#F5B800]/15 flex items-center justify-center flex-shrink-0">
                   <Trophy className="w-3 h-3 text-[#F5B800]" />
                 </div>
@@ -194,8 +194,8 @@ export default function HomePage() {
                 </span>
               </div>
 
-              {/* Righe squadre (scroll se necessario per i dispositivi molto piccoli ma più compatto) */}
-              <ul className="divide-y divide-[#F4F6F9] max-h-[50vh] overflow-y-auto">
+              {/* Righe squadre (scroll confinato qui) */}
+              <ul className="divide-y divide-[#F4F6F9] overflow-y-auto min-h-0">
                 {filteredTeams.map((team, index) => (
                   <li key={team.name}>
                     <button
@@ -237,9 +237,11 @@ export default function HomePage() {
             </div>
           </div>
         )}
+      </div>
 
-        {/* Footer */}
-        <p className="text-center text-[10px] sm:text-xs text-[#94A3B8] mt-4">
+      {/* ── Footer ── */}
+      <div className="pb-4 pt-2 flex-shrink-0">
+        <p className="text-center text-[10px] sm:text-xs text-[#94A3B8]">
           © 2024 Stabia Basket BTS &amp; NPS
         </p>
       </div>
