@@ -15,8 +15,15 @@ import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { supabase } from "@/lib/supabase";
 
 /* ─────────────────────────────────────────────
-   Tipi
+   Utilità
 ───────────────────────────────────────────── */
+function getDynamicHeader(teamName: string): string {
+  const upper = teamName.toUpperCase();
+  if (upper.includes("FEMM") || upper.includes("BFS")) return "Basket Femminile Stabia";
+  if (upper.includes("AQUILOTTI") || upper.includes("PULCINI") || upper.includes("SCOIATTOLI")) return "Minibasket Stabia";
+  return "Stabia Basket BTS & NPS";
+}
+
 type ApparelKey = "jersey" | "backpack" | "tracksuit" | "jacket" | "tshirt" | "polo";
 
 interface ApparelData {
@@ -75,12 +82,12 @@ function PlayerCard({ player, savingField, onToggle, onSizeChange }: {
         onClick={() => setExpanded(p => !p)}
       >
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#0A1F44]/10 flex items-center justify-center">
-          <span className="text-xs font-bold text-[#0A1F44]">
+          <span className="text-xs font-bold text-[#0A1F44] uppercase">
             {player.last_name.charAt(0)}{player.first_name.charAt(0)}
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-[#0A1F44] text-sm truncate">{player.last_name} {player.first_name}</p>
+          <p className="font-bold text-[#0A1F44] text-sm truncate uppercase">{player.last_name} {player.first_name}</p>
           <div className="flex items-center gap-2 mt-1">
             <div className="flex-1 h-1.5 bg-[#F4F6F9] rounded-full overflow-hidden max-w-[80px]">
               <div className="h-full bg-emerald-500 rounded-full transition-all duration-500"
@@ -217,7 +224,7 @@ function AbbigliamentoContent() {
 
       doc.setFillColor(10,31,68); doc.rect(0,0,W,26,"F");
       doc.setTextColor(245,184,0); doc.setFontSize(8); doc.setFont("helvetica","bold");
-      doc.text("STABIA BASKET BTS & NPS", W/2, 9, { align:"center" });
+      doc.text(getDynamicHeader(teamName), W/2, 9, { align:"center" });
       doc.setTextColor(255,255,255); doc.setFontSize(13);
       doc.text(`Abbigliamento – ${teamName}`, W/2, 18, { align:"center" });
       doc.setFillColor(244,246,249); doc.rect(0,26,W,7,"F");
@@ -227,7 +234,7 @@ function AbbigliamentoContent() {
       const sorted = [...players].sort((a,b) => a.last_name.localeCompare(b.last_name,"it") || a.first_name.localeCompare(b.first_name,"it"));
       const head = [["N°","Cognome","Nome","Taglia", ...ITEMS.map(i => i.label)]];
       const body = sorted.map((p,idx) => [
-        (idx+1).toString(), p.last_name.toUpperCase(), p.first_name, p.size ?? "—",
+        (idx+1).toString(), p.last_name.toUpperCase(), p.first_name.toUpperCase(), p.size ?? "—",
         ...ITEMS.map(i => (p.apparel[i.key] ? "X" : "")),
       ]);
 

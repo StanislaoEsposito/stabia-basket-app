@@ -24,6 +24,13 @@ type StoricoMap = Record<string, Record<string, boolean>>;
 /* ─────────────────────────────────────────────
    Utilità
 ───────────────────────────────────────────── */
+function getDynamicHeader(teamName: string): string {
+  const upper = teamName.toUpperCase();
+  if (upper.includes("FEMM") || upper.includes("BFS")) return "Basket Femminile Stabia";
+  if (upper.includes("AQUILOTTI") || upper.includes("PULCINI") || upper.includes("SCOIATTOLI")) return "Minibasket Stabia";
+  return "Stabia Basket BTS & NPS";
+}
+
 function fmtDate(d: string) {
   try { return format(parseISO(d), "dd/MM/yyyy", { locale: it }); }
   catch { return d; }
@@ -43,7 +50,7 @@ function PlayerRow({ player, index, present, saving, onToggle }: {
         {index + 1}
       </span>
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold text-sm truncate ${present ? "text-emerald-800" : "text-[#0A1F44]"}`}>
+        <p className={`font-semibold text-sm truncate uppercase ${present ? "text-emerald-800" : "text-[#0A1F44]"}`}>
           {player.last_name} {player.first_name}
         </p>
         {present
@@ -99,7 +106,7 @@ function StoricoSection({ players, practices, storicoMap, loading }: {
                 {player.last_name.charAt(0)}{player.first_name.charAt(0)}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#0A1F44] truncate">
+                <p className="text-sm font-semibold text-[#0A1F44] truncate uppercase">
                   {player.last_name} {player.first_name}
                 </p>
                 <p className="text-xs text-[#64748B] mt-0.5">
@@ -338,7 +345,7 @@ function AllenamentiContent() {
 
       doc.setFillColor(10,31,68); doc.rect(0,0,W,26,"F");
       doc.setTextColor(245,184,0); doc.setFontSize(8); doc.setFont("helvetica","bold");
-      doc.text("STABIA BASKET BTS & NPS", W/2, 9, { align:"center" });
+      doc.text(getDynamicHeader(teamName), W/2, 9, { align:"center" });
       doc.setTextColor(255,255,255); doc.setFontSize(13);
       doc.text(`Report Presenze – ${teamName}`, W/2, 18, { align:"center" });
 
@@ -349,7 +356,7 @@ function AllenamentiContent() {
       const sorted = [...players].sort((a,b) => a.last_name.localeCompare(b.last_name,"it") || a.first_name.localeCompare(b.first_name,"it"));
       const head = [["N°","Cognome","Nome", ...practiceList.map(pr => fmtDate(pr.practice_date))]];
       const body = sorted.map((p,i) => [
-        (i+1).toString(), p.last_name.toUpperCase(), p.first_name,
+        (i+1).toString(), p.last_name.toUpperCase(), p.first_name.toUpperCase(),
         ...practiceList.map(pr => (attLookup[p.id]?.[pr.id] ? "X" : "")),
       ]);
 

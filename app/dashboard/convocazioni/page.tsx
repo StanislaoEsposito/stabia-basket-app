@@ -40,6 +40,13 @@ interface CallUpMap {
 /* ─────────────────────────────────────────────
    Utilità
 ───────────────────────────────────────────── */
+function getDynamicHeader(teamName: string): string {
+  const upper = teamName.toUpperCase();
+  if (upper.includes("FEMM") || upper.includes("BFS")) return "Basket Femminile Stabia";
+  if (upper.includes("AQUILOTTI") || upper.includes("PULCINI") || upper.includes("SCOIATTOLI")) return "Minibasket Stabia";
+  return "Stabia Basket BTS & NPS";
+}
+
 function fmtDate(d: string) {
   try { return format(parseISO(d), "dd/MM/yyyy", { locale: it }); }
   catch { return d; }
@@ -79,7 +86,7 @@ function PlayerRow({
         {index + 1}
       </span>
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold text-sm truncate ${called ? "text-[#0A1F44]" : "text-[#334155]"}`}>
+        <p className={`font-semibold text-sm truncate uppercase ${called ? "text-[#0A1F44]" : "text-[#334155]"}`}>
           {player.last_name} {player.first_name}
         </p>
         {called ? (
@@ -369,7 +376,7 @@ function ConvocazioniContent() {
       doc.setTextColor(245, 184, 0);
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("STABIA BASKET BTS & NPS", W / 2, 9, { align: "center" });
+      doc.text(getDynamicHeader(teamName), W / 2, 9, { align: "center" });
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(13);
       doc.text(`Convocazione Gara`, W / 2, 17, { align: "center" });
@@ -397,7 +404,7 @@ function ConvocazioniContent() {
       } else {
         const rows = sorted.map((p, i) => [
           (i + 1).toString(),
-          `${p.jersey_number ? `[#${p.jersey_number}] ` : ""}${p.last_name.toUpperCase()} ${p.first_name}${p.is_captain ? " (C)" : ""}`
+          `${p.jersey_number ? `[#${p.jersey_number}] ` : ""}${p.last_name} ${p.first_name}${p.is_captain ? " (C)" : ""}`.toUpperCase()
         ]);
 
         autoTable(doc, {

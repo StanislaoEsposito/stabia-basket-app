@@ -22,6 +22,13 @@ import { supabase, type Player } from "@/lib/supabase";
 /* ─────────────────────────────────────────────
    Utilità
 ───────────────────────────────────────────── */
+function getDynamicHeader(teamName: string): string {
+  const upper = teamName.toUpperCase();
+  if (upper.includes("FEMM") || upper.includes("BFS")) return "Basket Femminile Stabia";
+  if (upper.includes("AQUILOTTI") || upper.includes("PULCINI") || upper.includes("SCOIATTOLI")) return "Minibasket Stabia";
+  return "Stabia Basket BTS & NPS";
+}
+
 function formatDob(dob: string | null): string {
   if (!dob) return "—";
   try {
@@ -34,7 +41,7 @@ function formatDob(dob: string | null): string {
 function formatPlayerName(player: Player): string {
   const cap = player.is_captain ? " (C)" : "";
   const num = player.jersey_number ? `[#${player.jersey_number}] ` : "";
-  return `${num}${player.last_name} ${player.first_name}${cap}`;
+  return `${num}${player.last_name} ${player.first_name}${cap}`.toUpperCase();
 }
 
 /* ─────────────────────────────────────────────
@@ -78,7 +85,7 @@ function PlayerCard({ player, index, onDelete, onToggleCaptain }: {
       {/* Dati */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <p className="font-bold text-[#0A1F44] text-sm leading-tight truncate">
+          <p className="font-bold text-[#0A1F44] text-sm leading-tight truncate uppercase">
             {player.last_name} {player.first_name}
           </p>
           <button
@@ -170,7 +177,7 @@ function PlayersTable({ players, onDelete, onToggleCaptain }: {
             <tr key={player.id}
               className="border-b border-[#F4F6F9] last:border-0 hover:bg-[#F8FAFC] transition-colors group">
               <td className="px-4 py-3 text-[#0A1F44] font-bold text-sm text-center w-16">{player.jersey_number || "-"}</td>
-              <td className="px-4 py-3 font-semibold text-[#0A1F44]">
+              <td className="px-4 py-3 font-semibold text-[#0A1F44] uppercase">
                 <div className="flex items-center gap-2">
                   <span>{player.last_name}</span>
                   <button
@@ -187,7 +194,7 @@ function PlayersTable({ players, onDelete, onToggleCaptain }: {
                   </button>
                 </div>
               </td>
-              <td className="px-4 py-3 text-[#334155]">{player.first_name}</td>
+              <td className="px-4 py-3 text-[#334155] uppercase">{player.first_name}</td>
               <td className="px-4 py-3 text-[#64748B] font-mono text-xs">{formatDob(player.dob)}</td>
               <td className="px-4 py-3 text-[#64748B] text-xs">
                 {player.phone_athlete && <div>Atl: {player.phone_athlete}</div>}
@@ -497,8 +504,8 @@ function AnagraficaContent() {
     try {
       const payload = {
         team_id: teamId,
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
+        first_name: form.first_name.trim().toUpperCase(),
+        last_name: form.last_name.trim().toUpperCase(),
         dob: form.dob || null,
         jersey_number: form.jersey_number.trim() || null,
         is_captain: form.is_captain,
@@ -607,7 +614,7 @@ function AnagraficaContent() {
       doc.setTextColor(245, 184, 0); // Gold
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
-      doc.text("STABIA BASKET BTS & NPS", pageWidth / 2, 10, { align: "center" });
+      doc.text(getDynamicHeader(teamName), pageWidth / 2, 10, { align: "center" });
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(14);
