@@ -76,10 +76,10 @@ export default function HomePage() {
   const activeSectorData = SECTORS.find(s => s.id === selectedSector);
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col overflow-hidden bg-slate-50">
+    <div className="fixed inset-0 w-full h-full flex flex-col overflow-hidden bg-slate-50">
 
       {/* ── Header (Blu) ── */}
-      <header className="shrink-0 bg-[#0A1F44] flex flex-col items-center pt-8 pb-6 rounded-b-[2rem] relative transition-all duration-300">
+      <header className="shrink-0 bg-[#0A1F44] flex flex-col items-center pt-8 pb-6 relative transition-all duration-300">
         {/* Cerchi decorativi di sfondo */}
         <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#F5B800]/10 pointer-events-none" />
         <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-[#F5B800]/8 pointer-events-none" />
