@@ -96,7 +96,7 @@ export default function HomePage() {
                   alt="Stabia Basket BTS"
                   width={140}
                   height={140}
-                  className="w-12 h-auto object-contain drop-shadow-lg"
+                  className="w-20 sm:w-24 h-auto object-contain drop-shadow-lg"
                   priority
                 />
                 <Image
@@ -104,7 +104,7 @@ export default function HomePage() {
                   alt="Stabia Basket NPS"
                   width={140}
                   height={140}
-                  className="w-12 h-auto object-contain drop-shadow-lg"
+                  className="w-20 sm:w-24 h-auto object-contain drop-shadow-lg"
                   priority
                 />
               </div>
@@ -114,7 +114,7 @@ export default function HomePage() {
                 alt="Stabia Basket Minibasket"
                 width={140}
                 height={140}
-                className="w-12 h-auto object-contain drop-shadow-lg"
+                className="w-20 sm:w-24 h-auto object-contain drop-shadow-lg"
                 priority
               />
             </div>
@@ -131,9 +131,9 @@ export default function HomePage() {
               <Image
                 src={activeSectorData?.logo || ""}
                 alt={activeSectorData?.label || ""}
-                width={80}
-                height={80}
-                className="w-12 sm:w-16 h-auto object-contain drop-shadow-xl"
+                width={100}
+                height={100}
+                className="w-16 sm:w-20 h-auto object-contain drop-shadow-xl"
                 priority
               />
             </div>
@@ -158,7 +158,7 @@ export default function HomePage() {
                 onClick={() => setSelectedSector(sector.id)}
                 className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-3 sm:p-5 flex flex-row md:flex-col items-center justify-start md:justify-center gap-4 hover:shadow-lg hover:scale-105 md:hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
               >
-                <div className="w-10 h-10 md:w-16 md:h-16 flex-shrink-0 relative flex items-center justify-center">
+                <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 relative flex items-center justify-center">
                   <Image
                     src={sector.logo}
                     alt={sector.label}
