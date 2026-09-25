@@ -124,7 +124,7 @@ const EMPTY_FORM: NewPlayerForm = {
 /* ─────────────────────────────────────────────
    Componente: Riga giocatore su MOBILE (Card)
 ───────────────────────────────────────────── */
-function PlayerCard({ player, index, onDelete, onToggleCaptain, onEdit }: {
+function PlayerCard({ player, index, isMinibasket, onDelete, onToggleCaptain, onEdit, onPaymentClick }: {
   player: Player; 
   index: number; 
   isMinibasket: boolean;
