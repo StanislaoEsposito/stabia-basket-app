@@ -293,7 +293,7 @@ function PlayersTable({ players, onDelete, onToggleCaptain, onEdit, isMinibasket
                   <button
                     onClick={() => onEdit(player)}
                     className="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center transition-colors
-                               text-transparent group-hover:text-[#64748B] hover:!text-blue-600"
+                               text-[#94A3B8] hover:text-blue-600"
                     aria-label="Modifica giocatore"
                     title="Modifica"
                   >
@@ -302,7 +302,7 @@ function PlayersTable({ players, onDelete, onToggleCaptain, onEdit, isMinibasket
                   <button
                     onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
                     className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center transition-colors
-                               text-transparent group-hover:text-red-400 hover:!text-red-600"
+                               text-[#94A3B8] hover:text-red-500"
                     aria-label="Elimina giocatore"
                     title="Elimina"
                   >
