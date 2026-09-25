@@ -53,6 +53,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export type Team = {
   id: string;
   name: string;
+  is_minibasket: boolean; // TRUE per i gruppi Minibasket (4 rate invece di 3)
 };
 
 export type Player = {
@@ -69,6 +70,10 @@ export type Player = {
   is_captain: boolean;          // Capitano (boolean)
   phone_athlete: string | null; // Cellulare Atleta
   phone_parent: string | null;  // Cellulare Genitore
+  p_rata_1: boolean;            // Pagamento Rata 1
+  p_rata_2: boolean;            // Pagamento Rata 2
+  p_rata_3: boolean;            // Pagamento Rata 3
+  p_rata_4: boolean;            // Pagamento Rata 4 (solo Minibasket)
 };
 
 export type Apparel = {
@@ -134,6 +139,35 @@ export async function updatePlayer(
 
   if (error) {
     console.error("updatePlayer error:", error);
+    return { data: null, error: error.message };
+  }
+  return { data: data as Player, error: null };
+}
+
+/**
+ * Tipo per i campi rata pagamento del giocatore.
+ */
+export type RataField = "p_rata_1" | "p_rata_2" | "p_rata_3" | "p_rata_4";
+
+/**
+ * Aggiorna il flag di pagamento di una singola rata per un giocatore.
+ * Esegue un UPDATE mirato su un solo campo booleano.
+ * Il valore viene invertito rispetto al currentValue passato.
+ */
+export async function togglePlayerPayment(
+  playerId: string,
+  rataField: RataField,
+  newValue: boolean
+): Promise<{ data: Player | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("players")
+    .update({ [rataField]: newValue })
+    .eq("id", playerId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("togglePlayerPayment error:", error);
     return { data: null, error: error.message };
   }
   return { data: data as Player, error: null };

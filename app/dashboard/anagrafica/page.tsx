@@ -19,10 +19,11 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Check,
 } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
-import { supabase, type Player, type Team, updatePlayer } from "@/lib/supabase";
+import { supabase, type Player, type Team, updatePlayer, togglePlayerPayment, type RataField } from "@/lib/supabase";
 
 /* ─────────────────────────────────────────────
    Utilità
@@ -47,6 +48,50 @@ function formatPlayerName(player: Player): string {
   const cap = player.is_captain ? " (C)" : "";
   const num = player.jersey_number ? `[#${player.jersey_number}] ` : "";
   return `${num}${player.last_name} ${player.first_name}${cap}`.toUpperCase();
+}
+
+/* ─────────────────────────────────────────────
+   Componente: Pill rata pagamento
+   Cerchietto cliccabile: verde+spunta = pagata, grigio = non pagata.
+   Chiama onPaymentClick per richiedere il PIN prima di aggiornare.
+───────────────────────────────────────────── */
+function RatePills({
+  player,
+  isMinibasket,
+  onPaymentClick,
+}: {
+  player: Player;
+  isMinibasket: boolean;
+  onPaymentClick: (playerId: string, field: RataField, currentValue: boolean) => void;
+}) {
+  const rateCount = isMinibasket ? 4 : 3;
+  const fields: RataField[] = ["p_rata_1", "p_rata_2", "p_rata_3", "p_rata_4"];
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {fields.slice(0, rateCount).map((field, i) => {
+        const paid = player[field] ?? false;
+        return (
+          <button
+            key={field}
+            onClick={() => onPaymentClick(player.id, field, paid)}
+            title={paid ? `Rata ${i + 1} — Pagata (clicca per stornare)` : `Rata ${i + 1} — Non pagata (clicca per segnare)`}
+            aria-label={`Rata ${i + 1} ${paid ? "pagata" : "non pagata"}`}
+            className={`
+              w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px]
+              border-2 transition-all duration-200 active:scale-90 select-none
+              ${paid
+                ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
+                : "bg-white border-[#CBD5E1] text-[#94A3B8] hover:border-[#0A1F44] hover:text-[#0A1F44]"
+              }
+            `}
+          >
+            {paid ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : `R${i + 1}`}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 /* ─────────────────────────────────────────────
@@ -82,59 +127,68 @@ const EMPTY_FORM: NewPlayerForm = {
 function PlayerCard({ player, index, onDelete, onToggleCaptain, onEdit }: {
   player: Player; 
   index: number; 
+  isMinibasket: boolean;
   onDelete: (id: string, name: string) => void;
   onToggleCaptain: (id: string, status: boolean) => void;
   onEdit: (player: Player) => void;
+  onPaymentClick: (playerId: string, field: RataField, currentValue: boolean) => void;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-[#E2E8F0] px-4 py-3 flex items-center gap-4 shadow-sm group">
-      {/* Numero */}
-      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#0A1F44] text-white text-xs font-bold flex items-center justify-center">
-        {player.jersey_number ? player.jersey_number : index + 1}
-      </span>
-      {/* Dati */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="font-bold text-[#0A1F44] text-sm leading-tight truncate uppercase">
-            {player.last_name} {player.first_name}
+    <div className="bg-white rounded-xl border border-[#E2E8F0] px-4 py-3 shadow-sm group">
+      <div className="flex items-center gap-4">
+        {/* Numero */}
+        <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#0A1F44] text-white text-xs font-bold flex items-center justify-center">
+          {player.jersey_number ? player.jersey_number : index + 1}
+        </span>
+        {/* Dati */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="font-bold text-[#0A1F44] text-sm leading-tight truncate uppercase">
+              {player.last_name} {player.first_name}
+            </p>
+            <button
+              onClick={() => onToggleCaptain(player.id, player.is_captain)}
+              className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors ${
+                player.is_captain 
+                  ? "bg-[#F5B800]/20 text-[#D97706]" 
+                  : "text-[#CBD5E1] bg-transparent hover:text-[#94A3B8] hover:bg-[#F4F6F9]"
+              }`}
+              aria-label="Toggle Capitano"
+              title={player.is_captain ? "Rimuovi capitano" : "Rendi capitano"}
+            >
+              (C)
+            </button>
+          </div>
+          <p className="text-xs text-[#94A3B8] mt-0.5">
+            {player.dob ? formatDob(player.dob) : "Nascita N/D"}
+            {player.phone_athlete && ` · Cel: ${player.phone_athlete}`}
+            {player.phone_parent && ` · Gen: ${player.phone_parent}`}
           </p>
+        </div>
+        {/* Azioni */}
+        <div className="flex items-center gap-1 flex-shrink-0">
           <button
-            onClick={() => onToggleCaptain(player.id, player.is_captain)}
-            className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors ${
-              player.is_captain 
-                ? "bg-[#F5B800]/20 text-[#D97706]" 
-                : "text-[#CBD5E1] bg-transparent hover:text-[#94A3B8] hover:bg-[#F4F6F9]"
-            }`}
-            aria-label="Toggle Capitano"
-            title={player.is_captain ? "Rimuovi capitano" : "Rendi capitano"}
+            onClick={() => onEdit(player)}
+            className="w-9 h-9 rounded-xl hover:bg-blue-50 flex items-center justify-center
+                       transition-colors text-[#64748B] hover:text-blue-600 active:scale-95"
+            aria-label="Modifica giocatore"
           >
-            (C)
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
+            className="w-9 h-9 rounded-xl hover:bg-red-50 flex items-center justify-center
+                       transition-colors text-red-400 hover:text-red-600 active:scale-95"
+            aria-label="Elimina giocatore"
+          >
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
-        <p className="text-xs text-[#94A3B8] mt-0.5">
-          {player.dob ? formatDob(player.dob) : "Nascita N/D"}
-          {player.phone_athlete && ` · Cel: ${player.phone_athlete}`}
-          {player.phone_parent && ` · Gen: ${player.phone_parent}`}
-        </p>
       </div>
-      {/* Azioni */}
-      <div className="flex items-center gap-1 flex-shrink-0">
-        <button
-          onClick={() => onEdit(player)}
-          className="w-9 h-9 rounded-xl hover:bg-blue-50 flex items-center justify-center
-                     transition-colors text-[#64748B] hover:text-blue-600 active:scale-95"
-          aria-label="Modifica giocatore"
-        >
-          <Pencil className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
-          className="w-9 h-9 rounded-xl hover:bg-red-50 flex items-center justify-center
-                     transition-colors text-red-400 hover:text-red-600 active:scale-95"
-          aria-label="Elimina giocatore"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+      {/* ── Riga Pagamenti ── */}
+      <div className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-[#F4F6F9]">
+        <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wide flex-shrink-0">Quote:</span>
+        <RatePills player={player} isMinibasket={isMinibasket} onPaymentClick={onPaymentClick} />
       </div>
     </div>
   );
@@ -143,11 +197,13 @@ function PlayerCard({ player, index, onDelete, onToggleCaptain, onEdit }: {
 /* ─────────────────────────────────────────────
    Componente: Tabella giocatori su DESKTOP
 ───────────────────────────────────────────── */
-function PlayersTable({ players, onDelete, onToggleCaptain, onEdit }: {
+function PlayersTable({ players, onDelete, onToggleCaptain, onEdit, isMinibasket, onPaymentClick }: {
   players: Player[];
+  isMinibasket: boolean;
   onDelete: (id: string, name: string) => void;
   onToggleCaptain: (id: string, status: boolean) => void;
   onEdit: (player: Player) => void;
+  onPaymentClick: (playerId: string, field: RataField, currentValue: boolean) => void;
 }) {
   const [sortField, setSortField] = useState<"last_name" | "first_name" | "dob" | "jersey_number">("last_name");
   const [sortAsc,   setSortAsc]   = useState(true);
@@ -190,6 +246,9 @@ function PlayersTable({ players, onDelete, onToggleCaptain, onEdit }: {
               Nascita <SortIcon field="dob" />
             </th>
             <th className="text-left px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider">Telefoni</th>
+            <th className="px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider text-left">
+              Quote {isMinibasket ? "(4)" : "(3)"}
+            </th>
             <th className="w-20 px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider text-right">Azioni</th>
           </tr>
         </thead>
@@ -220,6 +279,14 @@ function PlayersTable({ players, onDelete, onToggleCaptain, onEdit }: {
               <td className="px-4 py-3 text-[#64748B] text-xs">
                 {player.phone_athlete && <div>Atl: {player.phone_athlete}</div>}
                 {player.phone_parent && <div>Gen: {player.phone_parent}</div>}
+              </td>
+              {/* ── Colonna Quote ── */}
+              <td className="px-4 py-3">
+                <RatePills
+                  player={player}
+                  isMinibasket={isMinibasket}
+                  onPaymentClick={onPaymentClick}
+                />
               </td>
               <td className="px-4 py-3 text-right">
                 <div className="flex items-center justify-end gap-1">
@@ -767,6 +834,7 @@ function AnagraficaContent() {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [isMinibasket, setIsMinibasket] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -782,6 +850,15 @@ function AnagraficaContent() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
+  // ── State per pagamenti rate ──
+  // pendingPayment tiene in sospeso il click fino alla conferma PIN
+  const [pendingPayment, setPendingPayment] = useState<{
+    playerId: string;
+    field: RataField;
+    newValue: boolean;
+  } | null>(null);
+  const [showPaymentPinPrompt, setShowPaymentPinPrompt] = useState(false);
+
   const [pdfLoading, setPdfLoading] = useState(false);
 
   /* ── Carica squadra + giocatori + tutte le squadre ── */
@@ -789,9 +866,9 @@ function AnagraficaContent() {
     setLoading(true);
     setLoadError(null);
     try {
-      // Carica UUID squadra corrente e lista di tutte le squadre in parallelo
+      // Carica UUID+is_minibasket squadra corrente e lista di tutte le squadre in parallelo
       const [{ data: teamData, error: teamError }, { data: allTeams }] = await Promise.all([
-        supabase.from("teams").select("id").eq("name", teamName).single(),
+        supabase.from("teams").select("id, is_minibasket").eq("name", teamName).single(),
         supabase.from("teams").select("*").order("name"),
       ]);
 
@@ -801,6 +878,7 @@ function AnagraficaContent() {
       }
 
       setTeamId(teamData.id);
+      setIsMinibasket((teamData as Team).is_minibasket ?? false);
       setTeams((allTeams as Team[]) ?? []);
 
       // Carica giocatori ordinati per cognome + nome
@@ -977,6 +1055,36 @@ function AnagraficaContent() {
       setEditError("Errore nel salvataggio. Riprova.");
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  /* ── Pagamento rata: click sulla pill → mette in attesa il PIN ── */
+  const handlePaymentClick = (playerId: string, field: RataField, currentValue: boolean) => {
+    setPendingPayment({ playerId, field, newValue: !currentValue });
+    setShowPaymentPinPrompt(true);
+  };
+
+  /* ── Pagamento rata: dopo conferma PIN → aggiorna DB ── */
+  const handleConfirmPayment = async () => {
+    if (!pendingPayment) return;
+    setShowPaymentPinPrompt(false);
+    const { playerId, field, newValue } = pendingPayment;
+    setPendingPayment(null);
+
+    // Aggiornamento ottimistico: aggiorna subito la UI
+    setPlayers((prev) =>
+      prev.map((p) => p.id === playerId ? { ...p, [field]: newValue } : p)
+    );
+
+    try {
+      const { error } = await togglePlayerPayment(playerId, field, newValue);
+      if (error) throw new Error(error);
+    } catch (err) {
+      // In caso di errore, ripristina il valore originale
+      console.error("Errore aggiornamento pagamento:", err);
+      setPlayers((prev) =>
+        prev.map((p) => p.id === playerId ? { ...p, [field]: !newValue } : p)
+      );
     }
   };
 
@@ -1175,10 +1283,12 @@ function AnagraficaContent() {
                 <PlayerCard 
                   key={p.id} 
                   player={p} 
-                  index={i} 
+                  index={i}
+                  isMinibasket={isMinibasket}
                   onDelete={handleDeletePlayer} 
                   onToggleCaptain={handleToggleCaptain}
                   onEdit={handleEditPlayer}
+                  onPaymentClick={handlePaymentClick}
                 />
               ))}
             </div>
@@ -1187,9 +1297,11 @@ function AnagraficaContent() {
             <div className="hidden sm:block">
               <PlayersTable 
                 players={players} 
+                isMinibasket={isMinibasket}
                 onDelete={handleDeletePlayer} 
                 onToggleCaptain={handleToggleCaptain}
                 onEdit={handleEditPlayer}
+                onPaymentClick={handlePaymentClick}
               />
             </div>
           </>
@@ -1218,11 +1330,19 @@ function AnagraficaContent() {
         />
       )}
 
-      {/* ── Modal PIN di Conferma ── */}
+      {/* ── Modal PIN di Conferma (Modifica Anagrafica) ── */}
       {showPinPrompt && (
         <PinPromptModal
           onConfirm={handleConfirmEdit}
           onClose={() => { setShowPinPrompt(false); setPendingEditForm(null); }}
+        />
+      )}
+
+      {/* ── Modal PIN di Conferma (Pagamento Rata) ── */}
+      {showPaymentPinPrompt && (
+        <PinPromptModal
+          onConfirm={handleConfirmPayment}
+          onClose={() => { setShowPaymentPinPrompt(false); setPendingPayment(null); }}
         />
       )}
     </div>
