@@ -98,6 +98,7 @@ export type Match = {
   team_id: string;
   match_date: string; // "YYYY-MM-DD"
   opponent: string;
+  notes: string | null; // Note aggiuntive per la convocazione (es. orario ritrovo)
 };
 
 export type CallUp = {
@@ -112,3 +113,28 @@ export type Event = {
   poster_url: string | null;
   requires_pin: boolean;
 };
+
+/**
+ * Aggiorna i dati di un giocatore su Supabase.
+ * Supporta tutti i campi della tabella `players`, incluso `team_id`
+ * per lo spostamento del giocatore da una squadra a un'altra.
+ * Lo storico (presenze, convocazioni, abbigliamento) rimane intatto
+ * perché è legato al `player_id` e non al `team_id`.
+ */
+export async function updatePlayer(
+  id: string,
+  payload: Partial<Omit<Player, "id">>
+): Promise<{ data: Player | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("players")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("updatePlayer error:", error);
+    return { data: null, error: error.message };
+  }
+  return { data: data as Player, error: null };
+}

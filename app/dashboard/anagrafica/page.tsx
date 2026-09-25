@@ -14,10 +14,15 @@ import {
   ChevronDown,
   ChevronUp,
   Trash2,
+  Pencil,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  Lock,
 } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
-import { supabase, type Player } from "@/lib/supabase";
+import { supabase, type Player, type Team, updatePlayer } from "@/lib/supabase";
 
 /* ─────────────────────────────────────────────
    Utilità
@@ -57,6 +62,10 @@ interface NewPlayerForm {
   phone_parent: string;
 }
 
+interface EditPlayerForm extends NewPlayerForm {
+  team_id: string; // Permette di cambiare la squadra di appartenenza
+}
+
 const EMPTY_FORM: NewPlayerForm = { 
   first_name: "", 
   last_name: "", 
@@ -70,11 +79,12 @@ const EMPTY_FORM: NewPlayerForm = {
 /* ─────────────────────────────────────────────
    Componente: Riga giocatore su MOBILE (Card)
 ───────────────────────────────────────────── */
-function PlayerCard({ player, index, onDelete, onToggleCaptain }: {
+function PlayerCard({ player, index, onDelete, onToggleCaptain, onEdit }: {
   player: Player; 
   index: number; 
   onDelete: (id: string, name: string) => void;
   onToggleCaptain: (id: string, status: boolean) => void;
+  onEdit: (player: Player) => void;
 }) {
   return (
     <div className="bg-white rounded-xl border border-[#E2E8F0] px-4 py-3 flex items-center gap-4 shadow-sm group">
@@ -107,15 +117,25 @@ function PlayerCard({ player, index, onDelete, onToggleCaptain }: {
           {player.phone_parent && ` · Gen: ${player.phone_parent}`}
         </p>
       </div>
-      {/* Elimina — sempre visibile su mobile */}
-      <button
-        onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
-        className="flex-shrink-0 w-9 h-9 rounded-xl hover:bg-red-50 flex items-center justify-center
-                   transition-colors text-red-400 hover:text-red-600 active:scale-95"
-        aria-label="Elimina giocatore"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+      {/* Azioni */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <button
+          onClick={() => onEdit(player)}
+          className="w-9 h-9 rounded-xl hover:bg-blue-50 flex items-center justify-center
+                     transition-colors text-[#64748B] hover:text-blue-600 active:scale-95"
+          aria-label="Modifica giocatore"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
+          className="w-9 h-9 rounded-xl hover:bg-red-50 flex items-center justify-center
+                     transition-colors text-red-400 hover:text-red-600 active:scale-95"
+          aria-label="Elimina giocatore"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -123,10 +143,11 @@ function PlayerCard({ player, index, onDelete, onToggleCaptain }: {
 /* ─────────────────────────────────────────────
    Componente: Tabella giocatori su DESKTOP
 ───────────────────────────────────────────── */
-function PlayersTable({ players, onDelete, onToggleCaptain }: {
+function PlayersTable({ players, onDelete, onToggleCaptain, onEdit }: {
   players: Player[];
   onDelete: (id: string, name: string) => void;
   onToggleCaptain: (id: string, status: boolean) => void;
+  onEdit: (player: Player) => void;
 }) {
   const [sortField, setSortField] = useState<"last_name" | "first_name" | "dob" | "jersey_number">("last_name");
   const [sortAsc,   setSortAsc]   = useState(true);
@@ -169,7 +190,7 @@ function PlayersTable({ players, onDelete, onToggleCaptain }: {
               Nascita <SortIcon field="dob" />
             </th>
             <th className="text-left px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider">Telefoni</th>
-            <th className="w-12" />
+            <th className="w-20 px-4 py-3 text-xs font-bold text-[#64748B] uppercase tracking-wider text-right">Azioni</th>
           </tr>
         </thead>
         <tbody>
@@ -201,14 +222,26 @@ function PlayersTable({ players, onDelete, onToggleCaptain }: {
                 {player.phone_parent && <div>Gen: {player.phone_parent}</div>}
               </td>
               <td className="px-4 py-3 text-right">
-                <button
-                  onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
-                  className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center transition-colors
-                             text-transparent group-hover:text-red-400 hover:!text-red-600 ml-auto"
-                  aria-label="Elimina giocatore"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    onClick={() => onEdit(player)}
+                    className="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center transition-colors
+                               text-transparent group-hover:text-[#64748B] hover:!text-blue-600"
+                    aria-label="Modifica giocatore"
+                    title="Modifica"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(player.id, `${player.last_name} ${player.first_name}`)}
+                    className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center transition-colors
+                               text-transparent group-hover:text-red-400 hover:!text-red-600"
+                    aria-label="Elimina giocatore"
+                    title="Elimina"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -439,6 +472,291 @@ function AddPlayerModal({
 }
 
 /* ─────────────────────────────────────────────
+   Componente: PIN Prompt Modale (inline, leggero)
+   Chiede il PIN prima di eseguire un'azione sensibile.
+   NON blocca l'intera pagina come PinGuard.
+───────────────────────────────────────────── */
+const CORRECT_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN ?? "1234";
+
+function PinPromptModal({
+  onConfirm,
+  onClose,
+}: {
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const [pin, setPin] = useState("");
+  const [showPin, setShowPin] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [attempts, setAttempts] = useState(0);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin === CORRECT_PIN) {
+      onConfirm();
+    } else {
+      const n = attempts + 1;
+      setAttempts(n);
+      setError(n >= 3 ? `PIN errato (${n} tentativi). Contatta il responsabile.` : "PIN errato. Riprova.");
+      setPin("");
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl border border-[#E2E8F0] w-full max-w-sm p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-[#0A1F44] flex items-center justify-center">
+              <Lock className="w-4.5 h-4.5 text-[#F5B800]" />
+            </div>
+            <div>
+              <h3 className="font-bold text-[#0A1F44] text-sm">Conferma Modifica</h3>
+              <p className="text-xs text-[#94A3B8]">Inserisci il PIN amministratore</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-[#F4F6F9] flex items-center justify-center">
+            <X className="w-4 h-4 text-[#64748B]" />
+          </button>
+        </div>
+
+        {/* Form PIN */}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {error && (
+            <div className="flex items-center gap-2 bg-red-50 text-red-700 text-xs px-3 py-2 rounded-lg border border-red-200">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {error}
+            </div>
+          )}
+          <div className="relative">
+            <input
+              type={showPin ? "text" : "password"}
+              inputMode="numeric"
+              value={pin}
+              onChange={(e) => { setPin(e.target.value); setError(null); }}
+              placeholder="••••"
+              autoFocus
+              className="w-full text-center text-2xl font-mono tracking-[0.5em] px-4 py-3 pr-12
+                         rounded-xl border-2 border-[#E2E8F0] focus:border-[#0A1F44] focus:outline-none
+                         bg-[#F8FAFC] text-[#0A1F44]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPin((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]"
+            >
+              {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button type="button" variant="ghost" size="md" className="flex-1" onClick={onClose}>Annulla</Button>
+            <Button type="submit" variant="primary" size="md" className="flex-1 gap-1.5" disabled={pin.length === 0}>
+              <ShieldCheck className="w-4 h-4" /> Conferma
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Componente: Modale Modifica Giocatore
+   Form pre-compilato con tutti i campi + select squadra
+───────────────────────────────────────────── */
+function EditPlayerModal({
+  player,
+  teams,
+  onClose,
+  onSave,
+  saving,
+  error,
+}: {
+  player: Player;
+  teams: Team[];
+  onClose: () => void;
+  onSave: (form: EditPlayerForm) => void; // Non async: il save reale avviene dopo il PIN
+  saving: boolean;
+  error: string | null;
+}) {
+  const [form, setForm] = useState<EditPlayerForm>({
+    first_name: player.first_name,
+    last_name: player.last_name,
+    dob: player.dob ?? "",
+    jersey_number: player.jersey_number ?? "",
+    is_captain: player.is_captain,
+    phone_athlete: player.phone_athlete ?? "",
+    phone_parent: player.phone_parent ?? "",
+    team_id: player.team_id,
+  });
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+    if (!form.first_name.trim()) { setLocalError("Inserisci il nome."); return; }
+    if (!form.last_name.trim())  { setLocalError("Inserisci il cognome."); return; }
+    onSave(form); // Passa il form al genitore che aprirà il PIN modal
+  };
+
+  const displayError = localError ?? error;
+  const isTeamChanged = form.team_id !== player.team_id;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm overflow-y-auto"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl mt-12 sm:mt-0 mb-auto sm:mb-0">
+        {/* Handle bar mobile */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-[#E2E8F0]" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0]">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+              <Pencil className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="font-bold text-[#0A1F44] text-base">Modifica Giocatore</h2>
+              <p className="text-xs text-[#94A3B8]">{player.last_name} {player.first_name}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-[#F4F6F9] flex items-center justify-center" aria-label="Chiudi">
+            <X className="w-4 h-4 text-[#64748B]" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4 max-h-[72vh] overflow-y-auto">
+          {displayError && (
+            <div className="flex items-center gap-2 bg-red-50 text-red-700 text-sm px-3 py-2.5 rounded-lg border border-red-200">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" /> {displayError}
+            </div>
+          )}
+
+          {/* Nome e Cognome */}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+                Cognome <span className="text-red-400">*</span>
+              </label>
+              <input type="text" value={form.last_name}
+                onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] bg-[#F8FAFC]" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+                Nome <span className="text-red-400">*</span>
+              </label>
+              <input type="text" value={form.first_name}
+                onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] bg-[#F8FAFC]" />
+            </div>
+          </div>
+
+          {/* Maglia + Capitano */}
+          <div className="flex gap-4 items-end">
+            <div className="w-1/3">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">N° Maglia</label>
+              <input type="text" value={form.jersey_number}
+                onChange={(e) => setForm((p) => ({ ...p, jersey_number: e.target.value }))}
+                placeholder="es. 23"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] bg-[#F8FAFC]" />
+            </div>
+            <div className="flex-1 flex items-center mb-2.5 gap-2">
+              <input type="checkbox" id="edit_is_captain" checked={form.is_captain}
+                onChange={(e) => setForm((p) => ({ ...p, is_captain: e.target.checked }))}
+                className="w-4 h-4 rounded text-[#0A1F44] focus:ring-[#0A1F44] cursor-pointer" />
+              <label htmlFor="edit_is_captain" className="text-sm font-semibold text-[#0A1F44] cursor-pointer select-none">
+                Capitano della squadra
+              </label>
+            </div>
+          </div>
+
+          {/* Data di nascita */}
+          <div>
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">Data di Nascita</label>
+            <input type="date" value={form.dob}
+              onChange={(e) => setForm((p) => ({ ...p, dob: e.target.value }))}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                         focus:outline-none focus:ring-2 focus:ring-[#0A1F44] bg-[#F8FAFC]" />
+          </div>
+
+          {/* Telefoni */}
+          <div className="flex gap-4 flex-col sm:flex-row">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">Cellulare Atleta</label>
+              <input type="tel" value={form.phone_athlete}
+                onChange={(e) => setForm((p) => ({ ...p, phone_athlete: e.target.value }))}
+                placeholder="+39 333..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] placeholder:text-[#CBD5E1] bg-[#F8FAFC]" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">Cellulare Genitore</label>
+              <input type="tel" value={form.phone_parent}
+                onChange={(e) => setForm((p) => ({ ...p, phone_parent: e.target.value }))}
+                placeholder="+39 333..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#0A1F44] placeholder:text-[#CBD5E1] bg-[#F8FAFC]" />
+            </div>
+          </div>
+
+          {/* ── Cambio Squadra ── */}
+          <div>
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+              Squadra
+            </label>
+            <div className="relative">
+              <select
+                value={form.team_id}
+                onChange={(e) => setForm((p) => ({ ...p, team_id: e.target.value }))}
+                className="w-full appearance-none px-3.5 py-2.5 pr-10 rounded-xl border border-[#E2E8F0]
+                           text-[#0A1F44] text-sm bg-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0A1F44]"
+              >
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none" />
+            </div>
+            {isTeamChanged && (
+              <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
+                ⚠️ Il giocatore verrà spostato in un&apos;altra squadra. Lo storico presenze e convocazioni rimarrà intatto.
+              </p>
+            )}
+          </div>
+
+          {/* Pulsanti */}
+          <div className="flex gap-3 pt-4 border-t border-[#E2E8F0] mt-2">
+            <Button type="button" variant="ghost" size="md" className="flex-1" onClick={onClose} disabled={saving}>
+              Annulla
+            </Button>
+            <Button type="submit" variant="primary" size="md" className="flex-1 gap-1.5" disabled={saving}>
+              {saving ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Salvataggio…</>
+              ) : (
+                <><ShieldCheck className="w-4 h-4" /> Salva con PIN</>
+              )}
+            </Button>
+          </div>
+        </form>
+        <div className="h-safe-area-inset-bottom sm:hidden" />
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    Componente principale: AnagraficaContent
 ───────────────────────────────────────────── */
 function AnagraficaContent() {
@@ -448,6 +766,7 @@ function AnagraficaContent() {
 
   const [teamId, setTeamId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -455,19 +774,26 @@ function AnagraficaContent() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // ── State per modifica giocatore ──
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [pendingEditForm, setPendingEditForm] = useState<EditPlayerForm | null>(null);
+  const [showPinPrompt, setShowPinPrompt] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  /* ── Carica squadra + giocatori ── */
+  /* ── Carica squadra + giocatori + tutte le squadre ── */
   const loadData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      // 1. Trova UUID squadra
-      const { data: teamData, error: teamError } = await supabase
-        .from("teams")
-        .select("id")
-        .eq("name", teamName)
-        .single();
+      // Carica UUID squadra corrente e lista di tutte le squadre in parallelo
+      const [{ data: teamData, error: teamError }, { data: allTeams }] = await Promise.all([
+        supabase.from("teams").select("id").eq("name", teamName).single(),
+        supabase.from("teams").select("*").order("name"),
+      ]);
 
       if (teamError || !teamData) {
         setLoadError(`Squadra "${teamName}" non trovata nel database. Assicurati che il seed SQL sia stato eseguito.`);
@@ -475,8 +801,9 @@ function AnagraficaContent() {
       }
 
       setTeamId(teamData.id);
+      setTeams((allTeams as Team[]) ?? []);
 
-      // 2. Carica giocatori ordinati per cognome + nome
+      // Carica giocatori ordinati per cognome + nome
       const { data: playersData, error: playersError } = await supabase
         .from("players")
         .select("*")
@@ -590,6 +917,66 @@ function AnagraficaContent() {
       console.error("Errore durante l'aggiornamento del capitano:", err);
       // In caso di errore, ricarica i dati reali per sicurezza
       loadData();
+    }
+  };
+
+  /* ── Apri modale modifica ── */
+  const handleEditPlayer = (player: Player) => {
+    setEditingPlayer(player);
+    setEditError(null);
+    setShowEditModal(true);
+  };
+
+  /* ── Riceve il form, apre il PIN prompt ── */
+  const handleEditFormSave = (form: EditPlayerForm) => {
+    setPendingEditForm(form);
+    setShowPinPrompt(true);
+  };
+
+  /* ── Salva dopo conferma PIN ── */
+  const handleConfirmEdit = async () => {
+    if (!editingPlayer || !pendingEditForm) return;
+    setShowPinPrompt(false);
+    setSavingEdit(true);
+    setEditError(null);
+    try {
+      const payload: Partial<Omit<Player, "id">> = {
+        first_name: pendingEditForm.first_name.trim().toUpperCase(),
+        last_name: pendingEditForm.last_name.trim().toUpperCase(),
+        dob: pendingEditForm.dob || null,
+        jersey_number: pendingEditForm.jersey_number.trim() || null,
+        is_captain: pendingEditForm.is_captain,
+        phone_athlete: pendingEditForm.phone_athlete.trim() || null,
+        phone_parent: pendingEditForm.phone_parent.trim() || null,
+        team_id: pendingEditForm.team_id,
+      };
+
+      const { data: updated, error: updateError } = await updatePlayer(editingPlayer.id, payload);
+      if (updateError || !updated) throw new Error(updateError ?? "Errore sconosciuto");
+
+      const teamChanged = pendingEditForm.team_id !== editingPlayer.team_id;
+      if (teamChanged) {
+        // Il giocatore è stato spostato: va rimosso dalla lista corrente
+        setPlayers((prev) => prev.filter((p) => p.id !== editingPlayer.id));
+      } else {
+        // Aggiornamento ottimistico nella lista corrente
+        setPlayers((prev) =>
+          prev
+            .map((p) => (p.id === editingPlayer.id ? updated : p))
+            .sort((a, b) =>
+              a.last_name.localeCompare(b.last_name, "it") ||
+              a.first_name.localeCompare(b.first_name, "it")
+            )
+        );
+      }
+      setShowEditModal(false);
+      setEditingPlayer(null);
+      setPendingEditForm(null);
+    } catch (err) {
+      console.error("Errore modifica giocatore:", err);
+      setEditError("Errore nel salvataggio. Riprova.");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -791,6 +1178,7 @@ function AnagraficaContent() {
                   index={i} 
                   onDelete={handleDeletePlayer} 
                   onToggleCaptain={handleToggleCaptain}
+                  onEdit={handleEditPlayer}
                 />
               ))}
             </div>
@@ -801,6 +1189,7 @@ function AnagraficaContent() {
                 players={players} 
                 onDelete={handleDeletePlayer} 
                 onToggleCaptain={handleToggleCaptain}
+                onEdit={handleEditPlayer}
               />
             </div>
           </>
@@ -814,6 +1203,26 @@ function AnagraficaContent() {
           onSave={handleSave}
           saving={saving}
           error={saveError}
+        />
+      )}
+
+      {/* ── Modal Modifica Giocatore ── */}
+      {showEditModal && editingPlayer && (
+        <EditPlayerModal
+          player={editingPlayer}
+          teams={teams}
+          onClose={() => { setShowEditModal(false); setEditingPlayer(null); setEditError(null); }}
+          onSave={handleEditFormSave}
+          saving={savingEdit}
+          error={editError}
+        />
+      )}
+
+      {/* ── Modal PIN di Conferma ── */}
+      {showPinPrompt && (
+        <PinPromptModal
+          onConfirm={handleConfirmEdit}
+          onClose={() => { setShowPinPrompt(false); setPendingEditForm(null); }}
         />
       )}
     </div>

@@ -17,6 +17,8 @@ import {
   ChevronDown,
   Users,
   Trash2,
+  StickyNote,
+  Save,
 } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,7 @@ interface Match {
   team_id: string;
   match_date: string;
   opponent: string;
+  notes: string | null;
 }
 
 interface CallUpMap {
@@ -226,6 +229,9 @@ function ConvocazioniContent() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [showNewMatch, setShowNewMatch] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const [matchNotes, setMatchNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
 
   /* ── Init ── */
   const loadInit = useCallback(async () => {
@@ -262,6 +268,8 @@ function ConvocazioniContent() {
   const handleSelectMatch = async (matchId: string) => {
     const match = matches.find((m) => m.id === matchId) ?? null;
     setSelectedMatch(match);
+    setMatchNotes(match?.notes ?? "");
+    setNotesSaved(false);
     if (!match) { setCallUps({}); return; }
 
     setCallUpsLoading(true);
@@ -298,6 +306,8 @@ function ConvocazioniContent() {
       setShowNewMatch(false);
       // Auto-seleziona la partita appena creata
       setSelectedMatch(newMatch);
+      setMatchNotes("");
+      setNotesSaved(false);
       const map: CallUpMap = {};
       players.forEach((p) => { map[p.id] = false; });
       setCallUps(map);
@@ -320,7 +330,33 @@ function ConvocazioniContent() {
       setMatches((prev) => prev.filter((m) => m.id !== selectedMatch.id));
       setSelectedMatch(null);
       setCallUps({});
+      setMatchNotes("");
     } catch (e) { console.error("Errore eliminazione partita:", e); }
+  };
+
+  /* ── Salva note partita ── */
+  const handleSaveNotes = async () => {
+    if (!selectedMatch) return;
+    setSavingNotes(true);
+    setNotesSaved(false);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({ notes: matchNotes.trim() || null })
+        .eq("id", selectedMatch.id);
+      if (error) throw error;
+      // Aggiorna lo stato locale della partita selezionata
+      setSelectedMatch((prev) => prev ? { ...prev, notes: matchNotes.trim() || null } : null);
+      setMatches((prev) =>
+        prev.map((m) => m.id === selectedMatch.id ? { ...m, notes: matchNotes.trim() || null } : m)
+      );
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 3000);
+    } catch (e) {
+      console.error("Errore salvataggio note:", e);
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
   /* ── Toggle convocazione ── */
@@ -430,6 +466,23 @@ function ConvocazioniContent() {
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184);
       doc.text("Firma Allenatore", 55, lastY + 26, { align: "center" });
+
+      // Box Note operative (se presenti)
+      const noteText = selectedMatch.notes?.trim();
+      if (noteText) {
+        const noteY = lastY + 34;
+        doc.setFillColor(255, 251, 235); // Giallo pallido
+        doc.setDrawColor(245, 184, 0);   // Bordo gold
+        doc.roundedRect(20, noteY, W - 40, 12 + Math.ceil(noteText.length / 70) * 5, 3, 3, "FD");
+        doc.setFontSize(7.5);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(120, 80, 0);
+        doc.text("📋  Note operative:", 25, noteY + 6);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(60, 40, 0);
+        const splitNote = doc.splitTextToSize(noteText, W - 54);
+        doc.text(splitNote, 25, noteY + 12);
+      }
 
       doc.save(`Convocazione_${selectedMatch.opponent.replace(/\s+/g, "_")}_${selectedMatch.match_date}.pdf`);
     } catch (e) {
@@ -588,6 +641,52 @@ function ConvocazioniContent() {
                     ))}
                   </div>
                 )}
+
+                {/* ── Sezione Note Operative ── */}
+                <div className="mt-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <StickyNote className="w-3.5 h-3.5 text-amber-600" />
+                    </div>
+                    <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider">
+                      Note Operative
+                    </p>
+                    <span className="text-xs text-[#94A3B8] ml-1">(opzionali)</span>
+                  </div>
+                  <textarea
+                    value={matchNotes}
+                    onChange={(e) => { setMatchNotes(e.target.value); setNotesSaved(false); }}
+                    placeholder="es. Ritrovo al Viale Europa alle 12:00 per partire insieme. Portare la divisa da trasferta."
+                    rows={3}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-[#0A1F44] text-sm
+                               focus:outline-none focus:ring-2 focus:ring-[#0A1F44] focus:border-transparent
+                               placeholder:text-[#CBD5E1] bg-[#F8FAFC] resize-none leading-relaxed"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-[#94A3B8]">
+                      La nota verrà stampata in fondo al PDF delle convocazioni.
+                    </p>
+                    <button
+                      onClick={handleSaveNotes}
+                      disabled={savingNotes}
+                      className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl
+                                  transition-all duration-200 flex-shrink-0 ml-3
+                                  ${notesSaved
+                                    ? "bg-green-100 text-green-700 border border-green-200"
+                                    : "bg-[#0A1F44] text-white hover:bg-[#122558] disabled:opacity-50"
+                                  }`}
+                    >
+                      {savingNotes ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : notesSaved ? (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      ) : (
+                        <Save className="w-3.5 h-3.5" />
+                      )}
+                      {notesSaved ? "Salvato!" : "Salva Nota"}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
