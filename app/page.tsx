@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ChevronRight, Trophy, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Trophy, ArrowLeft, Users } from "lucide-react";
 
 /* ── Lista squadre ── */
 const TEAMS = [
@@ -224,6 +225,24 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
+
+            {/* Accesso rapido: Elenco Generale Minibasket (solo settore minibasket) */}
+            {selectedSector === "minibasket" && (
+              <Link
+                href="/dashboard/minibasket"
+                className="mt-4 w-full flex items-center gap-3 px-4 py-3.5 bg-[#0A1F44] rounded-xl text-white hover:bg-[#122558] active:scale-[0.98] transition-all duration-200 shadow-md group flex-shrink-0"
+                aria-label="Visualizza elenco generale Minibasket"
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#F5B800]/20 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-4 h-4 text-[#F5B800]" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <span className="font-bold text-sm block leading-tight">Elenco Generale Minibasket</span>
+                  <span className="text-xs text-white/60">Tutti gli atleti in ordine alfabetico</span>
+                </div>
+                <ChevronRight className="flex-shrink-0 w-4 h-4 text-[#F5B800]/60 group-hover:translate-x-0.5 transition-transform duration-150" />
+              </Link>
+            )}
             </div>
           </div>
         )}

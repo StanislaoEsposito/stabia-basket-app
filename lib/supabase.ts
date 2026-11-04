@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+﻿import { createClient } from "@supabase/supabase-js";
 
 /**
  * ============================================================
@@ -126,6 +126,45 @@ export type Event = {
  * Lo storico (presenze, convocazioni, abbigliamento) rimane intatto
  * perché è legato al `player_id` e non al `team_id`.
  */
+
+/**
+ * Tipo per il giocatore arricchito con il nome della squadra (join con teams).
+ * Usato nell'elenco generale Minibasket.
+ */
+export type PlayerWithTeam = Player & {
+  team_name: string;
+};
+
+/**
+ * Recupera tutti i giocatori appartenenti a squadre Minibasket (is_minibasket = TRUE),
+ * ordinati alfabeticamente per cognome e poi per nome.
+ * Effettua un JOIN con la tabella teams tramite la FK team_id.
+ */
+export async function fetchMinibasketPlayers(): Promise<{
+  data: PlayerWithTeam[] | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from("players")
+    .select("*,teams!inner(id,name,is_minibasket)")
+    .eq("teams.is_minibasket", true)
+    .order("last_name", { ascending: true })
+    .order("first_name", { ascending: true });
+
+  if (error) {
+    console.error("fetchMinibasketPlayers error:", error);
+    return { data: null, error: error.message };
+  }
+
+  // Mappa il risultato aggiungendo team_name flat
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapped: PlayerWithTeam[] = (data ?? []).map((row: any) => ({
+    ...(row as Player),
+    team_name: row.teams?.name ?? "—",
+  }));
+
+  return { data: mapped, error: null };
+}
 export async function updatePlayer(
   id: string,
   payload: Partial<Omit<Player, "id">>
